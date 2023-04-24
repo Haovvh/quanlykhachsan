@@ -1,92 +1,79 @@
 const database = require('../config/mysql');
 const { isDelete } = require('../utils/const'); 
 const {formatDate} = require('../utils/date');
+const configMysql = require('../config/mysql.config')
+const mysql = require('mysql2/promise');
 
 const getCustomer = async (request, res) => {
     console.log("getcustomer")
     res.render('customer', {title : 'Customer Information'});
 }
-
-const getAllCustomer =  (request, response) => {
-    console.log("getAllCustomer ::::")
-    
-	var action = request.body.action;
+const getCustomerById = async (request, response) => {
+    console.log("getCustomerById")
     try {
-        if(action == 'fetch')
-		{
-			console.log("fetch");
-			var query = `SELECT main.id, main.fullname, main.citizenIdentityCard,
-			main.address, main.phone, main.dateofbirth, gen.name AS gender, cus.name AS customertype
-			FROM Customers main LEFT JOIN CustomerType cus on (main.customertype = cus.id)
-			LEFT JOIN Gender gen on (main.gender = gen.id)
-			WHERE main.isDelete = ${isDelete.false}  ORDER BY main.id ASC`;  
-			database.query(query, function(error, _data){
-				console.log(error)
+		console.log("fetchSingle")
+		const {id} = request.params;
+		console.log(request.params)
 
-				database.query(`SELECT * FROM CustomerType 
-					WHERE isDelete = ${isDelete.false}  ORDER BY id ASC`, (err, _customerType) => {
+		var query = `SELECT main.id, main.fullname, main.citizenIdentityCard,
+		main.address, main.phone, main.dateofbirth, main.gender, main.customertype, cus.customertypename
+		FROM Customers main LEFT JOIN customertypes cus on (main.customertype = cus.id)
+		WHERE main.id = "${id}"`;
 
-						database.query(`SELECT * FROM Gender 
-						WHERE isDelete = ${isDelete.false}  ORDER BY id ASC`, (er, _genderType) => {
-							console.log("gender::: ", _genderType);
-							console.log("data::: ", _data);
-							console.log("customerType::: ", _customerType);
-							response.json({
-								data: _data,
-								customerType: _customerType,
-								genderType: _genderType
-							});
-						})
-						
-					});		
-				
-			});
-		}    
+		const pool = mysql.createPool(configMysql);
+		const customer = await pool.query(query);
+		await pool.end();
+		console.log(customer[0])
+		response.json({
+			data: customer[0][0],
+			success: true
+		});
 
-	if(action == 'Add')
-	{
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+const postCustomer = async (request, response) => {
+    console.log("postCustomer")
+    try {
+		console.log("requestbody :::", request.body);
+		console.log("data:::", request.body.data)
         const {fullname, phone, address, citizenIdentityCard, customertype, dateofbirth, gender} = request.body;	
         
-		const date = formatDate(dateofbirth.toString());
-		console.log("date :::", date);
+		const date = formatDate(dateofbirth);
+
 		var query = `
 		INSERT INTO Customers 
 		(fullname, phone, address, citizenIdentityCard, customertype, dateofbirth, gender) 
 		VALUES ('${fullname}', '${phone}', '${address}', '${citizenIdentityCard}', 
         '${customertype}', '${date}', '${gender}') `;
-
-		database.query(query, function(error, data){
-            console.log("Error::: ",error)
-			console.log("ID:::: ", data);
-			response.json({
-				message : 'Data Added'
-			});
+		const pool = mysql.createPool(configMysql);
+		await pool.query(query);
+		await pool.end();
+		response.json({
+			message : 'Data Added',
+			success: true
 		});
+
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
 	}
-
-	if(action == 'fetch_single')
-	{
-		var id = request.body.id;
-
-		var query = `SELECT main.id, main.fullname, main.citizenIdentityCard,
-		main.address, main.phone, main.dateofbirth, main.gender , main.customertype
-		FROM Customers main
-		WHERE main.id = "${id}"`;
-
-		database.query(query, function(error, data){
-			console.log("Error::: ",error)
-
-			response.json(data[0]);
-
-		});
-	}
-
-	if(action == 'Edit')
-	{
+}
+const putCustomerById = async (request, response) => {
+    console.log("putCustomerById")
+    try {
 		console.log("Edit ::: ");
 		const {id, fullname, phone, address, citizenIdentityCard, customertype, dateofbirth, gender} = request.body;	
-        console.log(request.body);
-        const date = formatDate(dateofbirth.toString());
+
+        const date = formatDate(dateofbirth);
 		var query = `
 		UPDATE Customers 
 		SET fullname = "${fullname}", 
@@ -98,34 +85,80 @@ const getAllCustomer =  (request, response) => {
 		gender = "${gender}" 
 		WHERE id = "${id}"
 		`;
-        console.log(query);
-		database.query(query, function(error, data){
-			response.json({
-				message : 'Data Edited'
-			});
+		const pool = mysql.createPool(configMysql);
+		await pool.query(query);
+		await pool.end();
+		response.json({
+			message : 'Data Edited', 
+			success: true
 		});
+		
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
 	}
+}
+const deleteCustomerById = async (request, response) => {
+    console.log("deleteCustomerById")
+    try {
+		const {id} = request.body
 
-	if(action == 'delete')
-	{
-		var id = request.body.id;
-
-        var query = `
+        const query = `
 		UPDATE Customers 
 		SET isDelete = ${isDelete.true}
 		WHERE id = "${id}"
 		`;
+		const pool = mysql.createPool(configMysql);
+		await pool.query(query);
+		await pool.end();
+		response.json({
+			message : 'Data Deleted',
+			success: true
+		});
 
-		database.query(query, function(error, data){
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
+const getAllCustomer = async (request, response) => {
+	
+    try {
+		console.log("fetch");
+			var queryCustomer = `SELECT main.id, main.fullname, main.citizenIdentityCard,
+			main.address, main.phone, main.dateofbirth, gen.gendername , cus.customertypename
+			FROM Customers main LEFT JOIN CustomerTypes cus on (main.customertype = cus.id)
+			LEFT JOIN Genders gen on (main.gender = gen.id)
+			WHERE main.isDelete = ${isDelete.false}  ORDER BY main.id ASC`; 
+			var queryCustomerType =  `SELECT * FROM CustomerTypes 
+			WHERE isDelete = ${isDelete.false}  ORDER BY id ASC`;
+			var queryGender = `SELECT * FROM Genders 
+			WHERE isDelete = ${isDelete.false}  ORDER BY id ASC`;
+			const pool = mysql.createPool(configMysql);
+			const customers = await pool.query(queryCustomer);
+			const customertypes = await pool.query(queryCustomerType);
+			const genders = await pool.query(queryGender);
 
 			response.json({
-				message : 'Data Deleted'
+				data: customers[0],
+				customerType: customertypes[0],
+				genderType: genders[0],
+				success: true
 			});
-
-		});
-	}
+        
     } catch (error) {
-        console.log("Error :::", error);
+        console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
     }
 
 	
@@ -133,6 +166,9 @@ const getAllCustomer =  (request, response) => {
 module.exports = {
     getCustomer,
     getAllCustomer,
-    
+    getCustomerById,
+	postCustomer,
+	putCustomerById,
+	deleteCustomerById
 };
 

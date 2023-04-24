@@ -3,27 +3,24 @@ const { isDelete } = require('../utils/const');
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
 
-const getCustomerType = async (request, res) => {
-    console.log("getCustomerType")
-    res.render('CustomerType', {title : 'CustomerType Information'});
+const getGender = async (request, res) => {
+    console.log("getGender")
+    res.render('Gender', {title : 'Gender Information'});
 }
-
-const getCustomerTypeById = async (request, response) => {
-    console.log("getCustomerTypeById")
+const getGenderById = async (request, response) => {
+    console.log("getGenderById")
     try {
 		var {id} = request.params;
 
 		var query = `SELECT *
-		FROM CustomerTypes main
-		WHERE main.id = "${id}"`;
+		FROM Genders 
+		WHERE id = "${id}"`;
 		const pool = mysql.createPool(configMysql);
-		const customertype = await pool.query(query);
-		await pool.end();
+		const gender = await pool.query(query);
 		response.json({
-			data: customertype[0][0],
+			data: gender[0][0], 
 			success: true
 		});
-		
 		
 	} catch (error) {
 		console.log("Error ::: ", error.message);
@@ -33,19 +30,20 @@ const getCustomerTypeById = async (request, response) => {
 		})
 	}
 }
-const postCustomerType = async (request, response) => {
-    console.log("postCustomerType")
+const postGender = async (request, response) => {
+    console.log("postGender")
     try {
-		const {customertypename} = request.body;	
+		console.log("Body ::: ",request.body);
+        const {gendername} = request.body;	
 		var query = `
-		INSERT INTO CustomerTypes 
-		(customertypename) 
-		VALUES ('${customertypename}') `;
+		INSERT INTO Genders 
+		(gendername) 
+		VALUES ('${gendername}') `;
 		const pool = mysql.createPool(configMysql);
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Added',
+			message : 'Data Added', 
 			success: true
 		});
 		
@@ -57,25 +55,25 @@ const postCustomerType = async (request, response) => {
 		})
 	}
 }
-const putCustomerTypeById = async (request, response) => {
-    console.log("putCustomerTypeById")
+const putGenderById = async (request, response) => {
+    console.log("putGenderById")
     try {
 		console.log("Edit ::: ");
-		const {id, customertypename} = request.body;	
+		const {id, gendername} = request.body;	
+
 		var query = `
-		UPDATE CustomerTypes
-		SET customertypename = "${customertypename}"
+		UPDATE Genders
+		SET gendername = "${gendername}"
 		WHERE id = "${id}"
 		`;
 		const pool = mysql.createPool(configMysql);
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Edited', 
+			message : 'Data Edited',
 			success: true
 		});
 
-		
 	} catch (error) {
 		console.log("Error ::: ", error.message);
 		response.json({
@@ -84,13 +82,13 @@ const putCustomerTypeById = async (request, response) => {
 		})
 	}
 }
-const deleteCustomerTypeById = async (request, response) => {
-    console.log("deleteCustomerTypeById")
+const deleteGenderById = async (request, response) => {
+    console.log("deleteGenderById")
     try {
 		var id = request.body.id;
 
         var query = `
-		UPDATE CustomerTypes
+		UPDATE Genders
 		SET isDelete = ${isDelete.true}
 		WHERE id = "${id}"
 		`;
@@ -98,9 +96,11 @@ const deleteCustomerTypeById = async (request, response) => {
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Deleted',
+			message : 'Data Deleted', 
 			success: true
 		});
+		
+
 	} catch (error) {
 		console.log("Error ::: ", error.message);
 		response.json({
@@ -110,37 +110,37 @@ const deleteCustomerTypeById = async (request, response) => {
 	}
 }
 
-const getAllCustomerType = async (request, response) => {
-    console.log("CustomerType ::::::::");
+const getAllGender = async (request, response) => {
+    
+	
     try {
 
-		var query = `SELECT id, customertypename
-			FROM CustomerTypes 
+		console.log("fetch");
+			var query = `SELECT id, gendername
+			FROM Genders 
 			WHERE isDelete = ${isDelete.false}  ORDER BY id ASC`;  
-
-		const pool = mysql.createPool(configMysql);
-		const customertypes = await pool.query(query);
+			const pool = mysql.createPool(configMysql);
+		const genders = await pool.query(query);
 		await pool.end();
 		response.json({
-			data: customertypes[0],
-			success: true                 
-		});				
-
+			data: genders[0],
+			success: true                    
+		});	
+			
+	
     } catch (error) {
         console.log("Error ::: ", error.message);
 		response.json({
 			message: error.message,
 			success: false
 		})
-    }
-
-	
+    }	
 }
 module.exports = {
-    getCustomerType,
-    getAllCustomerType,
-    getCustomerTypeById,
-	postCustomerType,
-	putCustomerTypeById,
-	deleteCustomerTypeById
+    getGender,
+    getAllGender,
+    getGenderById,
+	postGender,
+	putGenderById,
+	deleteGenderById
 };

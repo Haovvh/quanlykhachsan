@@ -1,3 +1,219 @@
+<div class="container">
+    <h1 class="mt-4 mb-4 text-center text-primary"><b><%= title %></b></h1>
 
-    <h1>RoomService</h1>
+    <span id="message"></span>
+    <div class="card">
+        <div class="card-header">
+            <div class="row">
+                <div class="col col-sm-9">Room Service</div>
+                <div class="col col-sm-3">
+                    <button type="button" id="addRoomService" class="btn btn-success btn-sm float-end">Add</button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered" id="roomservice_data">
+                    <thead>
+                        <tr>
+                            <th scope="col">STT</th>
+                            <th scope="col">Room Service Name</th>
+                            <th scope="col">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+  
 
+<div class="modal" tabindex="-1" id="actionModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="roomServiceForm" class="roomServiceForm">
+                <div class="modal-header" id="dynamicModalTitle">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Room Service Name</label>
+                        <input type="text" name="roomservicename" id="roomservicename" class="form-control roomservicename" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Price</label>
+                        <input type="number" name="price" id="price" class="form-control price" required/>
+                    </div> 
+                    
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="id" id="id" />
+                    <input type="hidden" name="action" id="action" value="Add" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="actionButton">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const viewMode = ["GET", "POST", "PUT", "DELETE"];
+    var indexMode = "GET";
+
+    $(document).ready( function(){
+    
+        load_data();
+    
+        function load_data()
+        {            
+            console.log("Load_data");
+            $.ajax({
+                url: '/roomservice/all',
+                method: viewMode[0],
+                dataType : "JSON",
+                success:function( data)
+                {                    
+                    var html = ''; 
+
+                    if(data.data.length > 0) {
+                        for(var count = 0; count < data.data.length; count++)
+                        {
+                            let _stt = count+1;
+                            html += `
+                            <tr>
+                                <td>`+ _stt +`</td>
+                                <td>`+data.data[count].roomservicename+`</td>
+                                <td>`+data.data[count].price+`</td>
+                                <td><button type="button" class="btn btn-warning btn-sm edit" data-id="`+data.data[count].id+`">Edit</button>&nbsp;<button type="button" class="btn btn-danger btn-sm delete" data-id="`+data.data[count].id+`">Delete</button></td>
+                            </tr>
+                            `;
+                        }
+                    }  
+                    document.querySelector('#roomservice_data tbody').innerHTML = html;       
+                    indexMode = viewMode[1];         
+                }
+            });
+        }
+    
+        $('#addRoomService').click(function(){
+            console.log("addRoomService")
+
+            $('#dynamicModalTitle').text('Add RoomType');
+    
+            $('#roomServiceForm')[0].reset();
+    
+            $('#action').val('Add');
+    
+            $('#actionButton').text('Add');
+    
+            $('#actionModal').modal('show');
+            indexMode = viewMode[1];
+    
+        });
+    
+        $('#roomServiceForm').on('submit', function(event){
+    
+            event.preventDefault();
+            console.log(" index mode == >", indexMode)
+    
+            $.ajax({
+                url:'/roomservice',
+                method: indexMode,
+                data:$('#roomServiceForm').serialize(),
+                dataType:"JSON",
+                beforeSend:function(){
+                    $('#actionButton').attr('disabled', 'disabled');
+                },
+                success:function(data)
+                { 
+                    if (data.success) {
+                        $('#actionButton').attr('disabled', false);
+
+                        document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
+            
+                        $('#actionModal').modal('hide');
+        
+                        load_data();
+        
+                        setTimeout(function(){
+                            document.querySelector('#message').innerHTML = '';
+                        }, 5000);
+                    } else {
+                        alert("Error")
+                    }
+                    
+                }
+            });
+    
+        });
+        
+        $(document).on('click', '.edit', function(){
+            console.log("Editt ::::")
+    
+            var id = $(this).data('id');
+    
+            
+    
+            $.ajax({
+                url:`/roomservice/${id}`,
+                method: viewMode[0],
+                dataType:"JSON",
+                success:function(data)
+                {
+                    if(data.success) {
+                        $('#dynamicModalTitle').text('Edit Data');
+    
+                        $('#action').val('Edit');
+                
+                        $('#actionButton').text('Edit');
+                
+                        $('#actionModal').modal('show');
+                        const temp = data.data;
+                        console.log("Data::::", data);
+                        $('#roomservicename').val(temp.roomservicename);
+                        $('#price').val(temp.price);
+                        $('#id').val(temp.id);
+                        indexMode = viewMode[2]
+                    } else {
+                        alert("Error")
+                    }
+                    
+                }
+            });    
+        });
+    
+        $(document).on('click', '.delete', function(){
+    
+            var id = $(this).data('id');
+    
+            if(confirm("Are you sure you want to delete this data?"))
+            {
+                $.ajax({
+                    url:'/roomservice',
+                    method: viewMode[3],
+                    data:{ id:id},
+                    dataType:"JSON",
+                    success:function(data)
+                    {
+                        if(data.success){
+                            document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
+                            load_data();
+                            setTimeout(function(){
+                                document.querySelector('#message').innerHTML = '';
+                            }, 5000);
+                        } else {
+                            alert("Error")
+                        }
+                        
+                    }
+                });
+            }
+    
+        });
+    });
+    
+    </script>

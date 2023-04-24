@@ -2,13 +2,21 @@
 const { Router } = require('express');
 const { 
     getCustomerType,
-    getAllCustomerType
+    getAllCustomerType,
+    getCustomerTypeById,
+    postCustomerType,
+    putCustomerTypeById,
+    deleteCustomerTypeById
 } = require('../Controllers/customertype.controller');
 
 
 const router = Router();
 
     router.get('/', getCustomerType);
-    router.post('/action', getAllCustomerType);
+    router.get('/all', getAllCustomerType);
+    router.get('/:id', getCustomerTypeById);
+    router.post('/', postCustomerType);
+    router.put('/', putCustomerTypeById);
+    router.delete('/', deleteCustomerTypeById);
     
 module.exports = router;

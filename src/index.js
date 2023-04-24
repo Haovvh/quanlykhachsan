@@ -7,6 +7,9 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const expressLayouts = require('express-ejs-layouts');
 
+const PORT = process.env.PORT || 5000;
+const server = require('./utils/server')
+
 
 
 const app = express();
@@ -14,7 +17,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-// Express Layouts
+// Express Layouts  
 app.use(expressLayouts);
 //config viewengine
 configViewEngine(app);
@@ -35,42 +38,27 @@ app.use( express.urlencoded({ extended: false }) );
 
 
 //Routes
-//app.use('/', require())
-// app.use("/", async (req, res) => {
-// 	res.render('index', {
-// 		layout: true,
-//         message: " ABC"
-// 	});
-// });
+app.use('/', require('./Routes/index.route'));
 
-const customerRoute = require('./Routes/customer.route');
-app.use('/customer', customerRoute);
-app.use('/index', require('./Routes/index.route'));
-
+app.use('/customer', require('./Routes/customer.route'));
 
 app.use('/customertype', require('./Routes/customertype.route'));
 
 app.use('/room', require('./Routes/room.route'));
+
 app.use('/roomtype', require('./Routes/roomtype.route'));
+
 app.use('/roomservice', require('./Routes/roomservice.route'));
 
 app.use('/book', require('./Routes/book.route'));
+
+app.use('/gender', require('./Routes/gender.route'));
+
 app.use('/invoice', require('./Routes/invoice.route'));
-//app.use('/', require('./Routes/index.route'));
 
-
-
-
-
-
-
-
-
-
-const PORT = process.env.PORT || 5000;
 
 
 app.listen(PORT , () => {
-    console.log(`SERVER RUNNING http:localhost:${PORT}`);
+    console.log(`SERVER RUNNING ${server}`);
 })
 

@@ -5,7 +5,7 @@
     <div class="card">
         <div class="card-header">
             <div class="row">
-                <div class="col col-sm-9">Customer Type</div>
+                <div class="col col-sm-9">Gender</div>
                 <div class="col col-sm-3">
                     <button type="button" id="add_data" class="btn btn-success btn-sm float-end">Add</button>
                 </div>
@@ -13,12 +13,11 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped table-bordered" id="roomtype_data">
+                <table class="table table-striped table-bordered" id="gender_data">
                     <thead>
                         <tr>
                             <th scope="col">STT</th>
-                            <th scope="col">Room Type Name</th>
-                            <th scope="col">Price</th>
+                            <th scope="col">Gender Name</th>                            
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -39,13 +38,10 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Room Type Name</label>
-                        <input type="text" name="roomtypename" id="roomtypename" class="form-control roomtypename" required />
+                        <label class="form-label">Gender Name</label>
+                        <input type="text" name="gendername" id="gendername" class="form-control gendername" required/>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Price</label>
-                        <input type="number" name="price" id="price" class="form-control price" required/>
-                    </div>                     
+                    
                 </div>
                 <div class="modal-footer">
                     <input type="hidden" name="id" id="id" />
@@ -63,49 +59,47 @@
     
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
     var indexMode = "GET";
-
     $(document).ready( function(){
     
         load_data();
     
         function load_data()
-        {           
+        {            
             console.log("Load_data");
             $.ajax({
-                
-                url: '/roomtype/all',
+                url: '/gender/all',
                 method: viewMode[0],
                 dataType : "JSON",
                 success:function( data)
                 {                    
                     var html = ''; 
 
-                    if(data.data.length > 0) {
+                    if(data.data && data.data.length > 0) {
                         for(var count = 0; count < data.data.length; count++)
                         {
                             let _stt = count+1;
                             html += `
                             <tr>
                                 <td>`+ _stt +`</td>
-                                <td>`+data.data[count].roomtypename+`</td>
-                                <td>`+data.data[count].price+`</td>
+                                <td>`+data.data[count].gendername+`</td>
+                                
                                 <td><button type="button" class="btn btn-warning btn-sm edit" data-id="`+data.data[count].id+`">Edit</button>&nbsp;<button type="button" class="btn btn-danger btn-sm delete" data-id="`+data.data[count].id+`">Delete</button></td>
                             </tr>
                             `;
                         }
-                    }                   
+                    }      
+                    document.querySelector('#gender_data tbody').innerHTML = html;           
     
-                    document.querySelector('#roomtype_data tbody').innerHTML = html;    
-                    indexMode = viewMode[1];            
+                    indexMode = viewMode[1];
+                    
                 }
             });
         }
     
         $('#add_data').click(function(){
-            indexMode = viewMode[1];
             console.log("add_data")
 
-            $('#dynamicModalTitle').text('Add RoomType');
+            $('#dynamicModalTitle').text('Add Gender');
     
             $('#sample_form')[0].reset();
     
@@ -114,17 +108,17 @@
             $('#actionButton').text('Add');
     
             $('#actionModal').modal('show');
+            indexMode = viewMode[1];
     
         });
     
         $('#sample_form').on('submit', function(event){
-            console.log("index  mode :::::", indexMode)
     
             event.preventDefault();
-    
+            console.log("index mode  === >", indexMode)
             $.ajax({
-                url:'/roomtype',
-                method:indexMode,
+                url:'/gender',
+                method: indexMode,
                 data:$('#sample_form').serialize(),
                 dataType:"JSON",
                 beforeSend:function(){
@@ -132,57 +126,54 @@
                 },
                 success:function(data)
                 {
-                    if(data.success){
-                        $('#actionButton').attr('disabled', false);
-
-                        document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
-            
-                        $('#actionModal').modal('hide');
-        
-                        load_data();
-        
-                        setTimeout(function(){
-                            document.querySelector('#message').innerHTML = '';
-                        }, 5000);
-                    } else {
-                        alert("Error")
-                    }
+                    $('#actionButton').attr('disabled', false);
+                    document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
+    
                     
+    
+                    $('#actionModal').modal('hide');
+    
+                    load_data();
+    
+                    setTimeout(function(){
+                        document.querySelector('#message').innerHTML = "";
+                    }, 5000);
                 }
             });
     
         });
         
         $(document).on('click', '.edit', function(){
-            console.log("Editt ::::")
-            var id = $(this).data('id');          
+            console.log("Editt ::::")    
+            var id = $(this).data('id');
             
     
             $.ajax({
-                url:`/roomtype/${id}`,
+                url:`/gender/${id}`,
                 method: viewMode[0],
                 dataType:"JSON",
-                success:function(data) {
-                    console.log("data", data)
-                    if( data.success  ) {                        
+                success:function(data)
+                {
+                    if(data.success) {
+                        const temp = data.data;
                         $('#dynamicModalTitle').text('Edit Data');
     
                         $('#action').val('Edit');
-                            
+                
                         $('#actionButton').text('Edit');
+                
                         $('#actionModal').modal('show');
-                        const tempData = data.data;
                         indexMode = viewMode[2];
-                        $('#roomtypename').val(tempData.roomtypename);
-                        $('#price').val(tempData.price);
-                        $('#id').val(tempData.id);
-                    }else {
-                        alert("Error ")
+                        console.log("Data::::", data);
+                        $('#gendername').val(temp.gendername);
+                        $('#id').val(temp.id);
+                    } else {
+                        alert("Error");
                     }
                     
-                    
                 }
-            });    
+            });
+    
         });
     
         $(document).on('click', '.delete', function(){
@@ -191,28 +182,27 @@
     
             if(confirm("Are you sure you want to delete this data?"))
             {
-                
                 $.ajax({
-                    url:'/roomtype',
+                    url:'/gender',
                     method: viewMode[3],
-                    data: {id: id},
+                    data:{action:'delete', id:id},
                     dataType:"JSON",
                     success:function(data)
                     {
                         if(data.success) {
                             document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
+                        
                             load_data();
                             setTimeout(function(){
-                                document.querySelector('#message').innerHTML = '';
+                                document.querySelector('#message').innerHTML = "";
                             }, 5000);
                         } else {
-                            alert("Error");
+                            alert("Error")
                         }
                         
                     }
                 });
             }
-    
         });
     });
     
