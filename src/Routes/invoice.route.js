@@ -8,7 +8,6 @@ const {
 
 const router = Router();
 
-    router.get('/', getInvoice);
-    router.post('/action', getAllInvoice);
+    router.get('/:id', getInvoice);
 
 module.exports = router;

@@ -56,6 +56,29 @@ const getRoomTypeById = async (request, response) =>{
 		})
 	}
 }
+
+const searchRoomType = async (request, response) =>{
+	try {
+		const {search} = request.body
+
+		var query = `SELECT *
+		FROM RoomTypes 
+		WHERE roomtypename LIKE '%${search}%' AND isDelete = ${isDelete.false} `;
+		const pool = mysql.createPool(configMysql);
+		const roomtype = await pool.query(query);
+		pool.end();
+		response.json({
+			data:roomtype[0],
+			success: true
+		})
+	} catch (error) {
+		console.log("Error ", error.message)
+		response.json({
+			message:  "error",
+			success: false
+		})
+	}
+}
 const postRoomType = async (request, response) =>{
 	try {
 		console.log("Body ::: ",request.body);
@@ -147,5 +170,6 @@ module.exports = {
     getRoomTypeById,
 	postRoomType,
 	putRoomTypeById,
-	deleteRoomTypeById
+	deleteRoomTypeById,
+	searchRoomType
 };

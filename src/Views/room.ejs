@@ -5,10 +5,16 @@
     <div class="card">
         <div class="card-header">
             <div class="row">
-                <div class="col col-sm-9">Room Data</div>
-                <div class="col col-sm-3">
-                    <button type="button" id="add_data" class="btn btn-success btn-sm float-end">Add</button>
+                <div class="col-3">
+                    <input type="text" name="search" id="search" class="form-control" placeholder="Tìm kiếm"/>
                 </div>
+                <div class="col-2">
+                    <button type="button" id="search" class="btn btn-success   search">Tìm kiếm</button>
+                </div>
+                <div class="col-6">
+                    <button type="button" id="add_data" class="btn btn-primary float-end">Add</button>
+                </div>
+                
             </div>
         </div>
         <div class="card-body">
@@ -17,16 +23,19 @@
                     <thead>
                         <tr>
                             <th scope="col">STT</th>
-                            <th scope="col">Room Name</th>
-                            <th scope="col">Room Type</th>
-                            <th scope="col">Price</th>
-                            <th scope="col">Status</th>
+                            <th scope="col">Tên Phòng</th>
+                            <th scope="col">Loại Phòng</th>
+                            <th scope="col">Đơn Giá (VND)</th>
+                            <th scope="col">Trạng thái</th>
                             <th scope="col">Mô tả</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
+                <div class="card-text pages row justify-content-center"  id="pages">
+            
+                </div>
             </div>
         </div>
     </div>
@@ -43,16 +52,16 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Room Name</label>
+                        <label class="form-label">Tên Phòng</label>
                         <input type="text" name="roomname" id="roomname" class="form-control roomname" required/>
                     </div>                    
                     <div class="mb-3" >
-                        <label class="form-label">Room Type</label>
+                        <label class="form-label">Loại phòng</label>
                         <select name="roomtype" id="roomtype" class="form-select roomtype">
                         </select>
                     </div>                    
                     <div class="mb-3">
-                        <label class="form-label">Description</label>
+                        <label class="form-label">Mô tả</label>
                         <input type="text" name="description" id="description" class="form-control description" />
                     </div> 
                 </div>
@@ -69,9 +78,124 @@
 
 
 <script>
+    const rowInPage = 10;
+    var lastPage = 1;
+    var page = 1;
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
     var indexMode = "GET";
     var _roomType =``;
+    const displaypages = (pages, current, lastPage) =>{
+        var firstPage = 1;
+        var bodyPages = ``;
+        if(pages > 0) { 
+            bodyPages += `
+            <div class="justify-content-center">
+            <nav class="mx-auto justify-content-center">
+            <ul class="pagination justify-content-center" style="margin-top: 2rem;">`;
+            if(current === 1) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">
+                        First
+                    </button>                
+                </li>`;
+            } else { 
+                bodyPages += `
+                <li class="page-item">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">
+                        First
+                    </button>
+                </li>`
+            } 
+            var i = (Number(current) > 3 ? Number(current) - 2 : 1) 
+  
+            if(i !== 1) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link" >...</button>
+                </li>`
+            } 
+            for(; i <= (Number(current) + 2) && i <= pages; i++) { 
+            
+                if(i == current) { 
+                    bodyPages += `
+                    <li class="page-item active">
+                        <button class="page-link pagesindex" id="pagesindex" data-id="`+i+`">
+                            ${i}
+                        </button>                    
+                    </li>`;
+                } else { 
+                    bodyPages += `
+                    <li class="page-item">
+                        <button class="page-link pagesindex" id="pagesindex" data-id="`+i+`">
+                            ${i}
+                        </button>
+                    </li>`
+                } 
+                if (i == Number(current) + 2 && i < pages) { 
+                    bodyPages += `
+                    <li class="page-item disabled">
+                        <button class="page-link" >
+                            ...
+                        </button>
+                    </li>`
+                } 
+            }
+        
+            if(current === pages) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">
+                        Last
+                    </button>                
+                </li>`
+            } else { 
+                bodyPages += `
+                <li class="page-item">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">
+                        Last
+                    </button>                
+                </li>`
+            }
+            bodyPages += `
+                </ul>
+            </nav>
+            </div>`
+        } 
+        document.querySelector('#pages').innerHTML = bodyPages;
+    }
+    const displayRoom = (rowInPage, _stt, rooms) => {
+        var html =``;
+        for(var count = 0; count < rowInPage; count++) {
+                let roomRow = rooms[count];
+                let price = (parseInt(roomRow.price).toLocaleString());
+                _stt++;
+                html += `
+                    <tr>
+                        <td>`+ _stt +`</td>
+                        <td>`+roomRow.roomname+`</td>
+                        <td>`+roomRow.roomtypename+`</td>
+                        <td>`+price+`</td>
+                        <td>`+roomRow.statusname+`</td>
+                        <td>`+roomRow.description+`</td>
+                        <td>
+                            <button type="button" class="btn btn-warning btn-sm edit" data-id="`+roomRow.id+`">
+                                Edit
+                            </button>
+                            &nbsp;
+                            <button type="button" class="btn btn-danger btn-sm delete" data-id="`+roomRow.id+`">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }                    
+          
+        document.querySelector('#room_data tbody').innerHTML = html;
+                 
+    }
+   
+    
 
     $(document).ready( function(){
     
@@ -102,25 +226,16 @@
                         `;                        
                     }
                     if(data.data && data.data.length > 0) {
-                        for(var count = 0; count < data.data.length; count++)
-                        {
-                            let _stt = count+1;
-                            html += `
-                            <tr>
-                                <td>`+ _stt +`</td>
-                                <td>`+data.data[count].roomname+`</td>
-                                <td>`+data.data[count].roomtypename+`</td>
-                                <td>`+data.data[count].price+`</td>
-                                <td>`+data.data[count].statusname+`</td>
-                                <td>`+data.data[count].description+`</td>
-                                
-                                <td><button type="button" class="btn btn-warning btn-sm edit" data-id="`+data.data[count].id+`">Edit</button>&nbsp;<button type="button" class="btn btn-danger btn-sm delete" data-id="`+data.data[count].id+`">Delete</button></td>
-                            </tr>
-                            `;
-                        }
+                        pages = Math.ceil(data.data.length/rowInPage)
+                        const current = 1;
+                        lastPage = Math.ceil(data.data.length/rowInPage)
+                        const _stt = 0;
+
+                        displaypages(pages, current, lastPage);
+                        displayRoom(rowInPage, _stt, data.data)
                     }              
     
-                    document.querySelector('#room_data tbody').innerHTML = html;
+                    
                     indexMode = viewMode[1];
                 }
             });
@@ -241,6 +356,24 @@
                 });
             }
     
+        });
+        $(document).on('click', '.pagesindex', function(){
+            var id = $(this).data('id');
+            id = parseInt(id);
+            $.ajax({
+                url: `/room/page/${id-1}0/${rowInPage}`,
+                method: viewMode[0],
+                dataType : "JSON",
+                success:  function( data)
+                {
+                    let _stt = id-1 + "" + 0;
+                    _stt = parseInt(_stt)
+                    console.log(data);
+                    displaypages(pages, id, lastPage);
+                    const row = parseInt(data.rooms.length);
+                    displayRoom(row, _stt, data.rooms)
+                }
+            })
         });
     });
     

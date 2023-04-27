@@ -43,7 +43,7 @@ CREATE TABLE QLKhachSan.Users (
 		,roomname					VARCHAR(11) NOT NULL
         ,roomtype				BIGINT NOT NULL
         ,description 			VARCHAR(200)
-        ,status                 BIGINT 	DEFAULT 1
+        ,status                 VARCHAR(20) 	DEFAULT 'SANSANG'
         ,isDelete				BOOL DEFAULT FALSE
         ,UNIQUE(roomname)
         );
@@ -52,6 +52,7 @@ CREATE TABLE QLKhachSan.Users (
 		id			            BIGINT PRIMARY KEY AUTO_INCREMENT
 		,roomtypename					VARCHAR(50) NOT NULL
         ,price 					DECIMAL DEFAULT 0
+        ,maxcustomer            BIGINT DEFAULT 1
         ,isDelete				BOOL DEFAULT FALSE
         ,UNIQUE(roomtypename)
         );
@@ -72,8 +73,8 @@ CREATE TABLE QLKhachSan.Users (
         ,bookdate		    	DATETIME DEFAULT CURRENT_TIMESTAMP
         ,checkindate		    DATETIME DEFAULT NOW()
         ,checkoutdate		    DATETIME
-        ,totalmoney             BIGINT
-        ,statusBook             BIGINT DEFAULT 10
+        ,totalmoney             BIGINT DEFAULT 0
+        ,statusBook             VARCHAR(20) DEFAULT 'CHUATHANHTOAN'
         ,isDelete				BOOL DEFAULT FALSE
         ,isSave                 BOOL DEFAULT FALSE
         );

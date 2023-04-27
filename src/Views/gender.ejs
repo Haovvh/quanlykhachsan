@@ -5,10 +5,16 @@
     <div class="card">
         <div class="card-header">
             <div class="row">
-                <div class="col col-sm-9">Gender</div>
-                <div class="col col-sm-3">
-                    <button type="button" id="add_data" class="btn btn-success btn-sm float-end">Add</button>
+                <div class="col-3">
+                    <input type="text" name="search" id="search" class="form-control" placeholder="Tìm kiếm"/>
                 </div>
+                <div class="col-2">
+                    <button type="button" id="search" class="btn btn-success   search">Tìm kiếm</button>
+                </div>
+                <div class="col-6">
+                    <button type="button" id="add_data" class="btn btn-primary float-end">Add</button>
+                </div>
+                
             </div>
         </div>
         <div class="card-body">
@@ -57,10 +63,17 @@
 
 <script>
     
+    const user = JSON.parse(localStorage.getItem('user'));
+    
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
     var indexMode = "GET";
     $(document).ready( function(){
     
+        $.ajaxSetup({
+            headers: { 'Authorization': 'some value',
+            'X-CSRF-TOKEN':'xxxxxxxxxxxxxxxxxxxx',
+            'Content-Type':'application/json' }
+        });
         load_data();
     
         function load_data()
@@ -68,7 +81,7 @@
             console.log("Load_data");
             $.ajax({
                 url: '/gender/all',
-                method: viewMode[0],
+                method: viewMode[0],                
                 dataType : "JSON",
                 success:function( data)
                 {                    
@@ -77,13 +90,22 @@
                     if(data.data && data.data.length > 0) {
                         for(var count = 0; count < data.data.length; count++)
                         {
+                            let gender = data.data[count];
                             let _stt = count+1;
                             html += `
                             <tr>
                                 <td>`+ _stt +`</td>
-                                <td>`+data.data[count].gendername+`</td>
+                                <td>`+gender.gendername+`</td>
                                 
-                                <td><button type="button" class="btn btn-warning btn-sm edit" data-id="`+data.data[count].id+`">Edit</button>&nbsp;<button type="button" class="btn btn-danger btn-sm delete" data-id="`+data.data[count].id+`">Delete</button></td>
+                                <td>
+                                    <button type="button" class="btn btn-warning btn-sm edit" data-id="`+gender.id+`">
+                                        Edit
+                                    </button>
+                                    &nbsp;
+                                    <button type="button" class="btn btn-danger btn-sm delete" data-id="`+gender.id+`">
+                                        Delete
+                                    </button>
+                                </td>
                             </tr>
                             `;
                         }

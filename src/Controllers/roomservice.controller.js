@@ -108,6 +108,30 @@ const getRoomServiceById = async (request, response) => {
 	}
 }
 
+const searchRoomService = async (request, response) => {
+	try {
+		const {search} = request.body;
+
+		var query = `SELECT *
+		FROM RoomServices 
+		WHERE roomservicename LIKE '%${search}% AND isDelete = ${isDelete.false}`;
+		const pool = mysql.createPool(configMysql);
+		
+		const roomService = await pool.query(query);
+		response.json({
+			data:roomService[0],
+			success: true
+		});
+
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
 const getAllRoomService = async (request, response) => {
     
     try {
@@ -137,5 +161,6 @@ module.exports = {
     getRoomServiceById,
 	postRoomService,
 	putRoomServiceById,
-	deleteRoomServiceById
+	deleteRoomServiceById,
+	searchRoomService
 };

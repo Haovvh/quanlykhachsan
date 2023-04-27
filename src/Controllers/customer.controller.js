@@ -8,6 +8,7 @@ const getCustomer = async (request, res) => {
     console.log("getcustomer")
     res.render('customer', {title : 'Customer Information'});
 }
+
 const getCustomerById = async (request, response) => {
     console.log("getCustomerById")
     try {
@@ -37,6 +38,38 @@ const getCustomerById = async (request, response) => {
 		})
 	}
 }
+
+const searchCustomer = async (request, response) => {
+    console.log("searchCustomer")
+    try {
+		const {search} = request.body;
+
+		var query = `SELECT main.id, main.fullname, main.citizenIdentityCard,
+		main.address, main.phone, main.dateofbirth, main.gender, 
+		main.customertype, cus.customertypename, gen.gendername
+		FROM Customers main 
+		LEFT JOIN customertypes cus on (main.customertype = cus.id)
+		LEFT JOIN genders gen on (main.gender = gen.id)
+		WHERE main.fullname LIKE '%${search}%' OR  main.phone LIKE '%${search}%' `;
+
+		const pool = mysql.createPool(configMysql);
+		const customer = await pool.query(query);
+		await pool.end();
+		console.log(customer[0])
+		response.json({
+			data: customer[0],
+			success: true
+		});
+
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
 const postCustomer = async (request, response) => {
     console.log("postCustomer")
     try {
@@ -67,6 +100,7 @@ const postCustomer = async (request, response) => {
 		})
 	}
 }
+
 const putCustomerById = async (request, response) => {
     console.log("putCustomerById")
     try {
@@ -101,6 +135,7 @@ const putCustomerById = async (request, response) => {
 		})
 	}
 }
+
 const deleteCustomerById = async (request, response) => {
     console.log("deleteCustomerById")
     try {
@@ -119,6 +154,45 @@ const deleteCustomerById = async (request, response) => {
 			success: true
 		});
 
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
+const getCustomerByIdFromTo = async (request, response) =>{
+	console.log("getCustomerByIdFromTo")
+	try {
+		const {id, rowinpage} = request.params;
+		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+			
+			var queryCustomer = `SELECT main.id, main.fullname, main.citizenIdentityCard,
+			main.address, main.phone, main.dateofbirth, gen.gendername , cus.customertypename
+			FROM Customers main LEFT JOIN CustomerTypes cus on (main.customertype = cus.id)
+			LEFT JOIN Genders gen on (main.gender = gen.id)
+			WHERE main.isDelete = ${isDelete.false}  ORDER BY main.id ASC
+			LIMIT ? , ?`;
+			var queryCustomerType =  `SELECT * FROM CustomerTypes 
+			WHERE isDelete = ${isDelete.false}  ORDER BY id ASC`;
+			var queryGender = `SELECT * FROM Genders 
+			WHERE isDelete = ${isDelete.false}  ORDER BY id ASC`;
+			const pool = mysql.createPool(configMysql);
+			const customers = await pool.query(queryCustomer, [parseInt(id), parseInt(rowinpage)]);
+			const customertypes = await pool.query(queryCustomerType);
+			const genders = await pool.query(queryGender);
+
+			await pool.end();			
+			response.json({
+				customers: customers[0],
+				customerType: customertypes[0],
+				genderType: genders[0],
+				success: true
+			});
+			
+		
 	} catch (error) {
 		console.log("Error ::: ", error.message);
 		response.json({
@@ -169,6 +243,8 @@ module.exports = {
     getCustomerById,
 	postCustomer,
 	putCustomerById,
-	deleteCustomerById
+	deleteCustomerById,
+	getCustomerByIdFromTo,
+	searchCustomer
 };
 

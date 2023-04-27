@@ -1,0 +1,233 @@
+<!-- Bookdetail -->
+<div class="container bookingform" id="bookingform" >
+    <h1 class="mt-4 mb-4 text-center text-primary"><b>Báo cáo thuê phòng</b></h1>
+
+    <span id="message"></span>
+    <div class="card">
+        <form>            
+            <div class="card-header">            
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="row">                            
+                            <div class="col-3">
+                                <label class="form-label">Ngày Thuê</label>                                
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label">Ngày Trả</label>                                                        
+                            </div>
+                            <div class="col-2">
+
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label"><h4>Tổng tiền</h4></label>                                                        
+                            </div>
+                        </div>
+                        <div class="row">                          
+                            
+                            <div class="col-3">
+                                <input type="date" class="form-control checkdatefrom"  id="checkdatefrom" name="checkdatefrom" required>
+                            </div>
+                            <div class="col-3">
+                                <input type="date" class="form-control checkdateto"  id="checkdateto" name="checkdateto" required>
+                            </div>
+                            <div class="col-2">
+                                <button type="button" id="search" class="btn btn-success search">Tìm kiếm</button>
+                            </div>
+                            <div class="col-3">
+                                <input type="text" class="form-control totalmoney"  id="totalmoney" name="totalmoney" readonly>
+                            </div>
+                        </div>                 
+                    </div>
+                </div>                
+            </div>     
+        </form> 
+        <div class="card-body ">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered" id="bookheaderdata">
+                    <thead>
+                        <tr>
+                            <th scope="col">STT</th>
+                            <th scope="col">Phòng</th>
+                            <th scope="col">Thanh toán</th>
+                            <th scope="col">Ngày Thuê</th>
+                            <th scope="col">Ngày Trả</th>
+                            <th scope="col">Trạng Thái</th>
+                            <th scope="col">Thành tiền (VND)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="card-text pages row justify-content-center"  id="pages">            
+                </div>
+            </div>
+        </div>       
+    </div>
+</div>
+
+
+
+<script>
+    const rowInPage = 10;
+    var lastPage = 1;
+    var pages = 1;
+    const statusBook = ["CHUATHANHTOAN", "DATHANHTOAN"]
+    const viewMode = ["GET", "POST", "PUT", "DELETE"];
+
+    const displaypages = (pages, current, lastPage) =>{
+        var firstPage = 1;
+        var bodyPages = ``;
+        if(pages > 0) { 
+            bodyPages += `
+            <div class="justify-content-center">
+            <nav class="mx-auto justify-content-center">
+            <ul class="pagination justify-content-center" style="margin-top: 2rem;">`;
+            if(current === 1) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>                
+                </li>`;
+            } else { 
+                bodyPages += `
+                <li class="page-item">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>
+                </li>`
+            } 
+            var i = (Number(current) > 3 ? Number(current) - 2 : 1) 
+  
+            if(i !== 1) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link" >...</button>
+                </li>`
+            } 
+            for(; i <= (Number(current) + 2) && i <= pages; i++) { 
+            
+                if(i == current) { 
+                    bodyPages += `
+                    <li class="page-item active">
+                        <button class="page-link pagesindex" id="pagesindex" data-id="`+i+`">${i}</button>                    
+                    </li>`;
+                } else { 
+                    bodyPages += `
+                    <li class="page-item">
+                        <button class="page-link pagesindex" id="pagesindex" data-id="`+i+`">${i}</button>
+                    </li>`
+                } 
+                if (i == Number(current) + 2 && i < pages) { 
+                    bodyPages += `
+                    <li class="page-item disabled">
+                        <button class="page-link" >...</button>
+                    </li>`
+                } 
+            }
+        
+            if(current === pages) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Last</button>                
+                </li>`
+            } else { 
+                bodyPages += `
+                <li class="page-item">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Last</button>                
+                </li>`
+            }
+            bodyPages += `
+                </ul>
+            </nav>
+            </div>`
+        } 
+        document.querySelector('#pages').innerHTML = bodyPages;
+    }
+    
+    const displayBook = (rowInPage, _stt, books) => {
+        var html =``;        
+        for(var count = 0; count < rowInPage; count++)
+            {                            
+                let bookRow = books[count];
+                let money = (parseInt(bookRow.totalmoney)).toLocaleString();
+                _stt++
+                html += `
+                    <tr>
+                        <td>`+ _stt +`</td>
+                        <td>`+bookRow.roomname+`</td>
+                        <td>`+bookRow.paymentname+`</td>
+                        <td>`+bookRow.checkindate+`</td>
+                        <td>`+bookRow.checkoutdate+`</td>`;
+                        if(bookRow.statusBook === statusBook[1]){
+                            html+= `<td style="background-color: green;">`+bookRow.statusname+`</td>`
+                        } else if(bookRow.statusBook === statusBook[0]) {
+                            html+= `<td style="background-color: orange;">`+bookRow.statusname+`</td>`
+                        }
+                        html +=`
+                            <td>`+money+`</td>
+                            <td>
+                                <button type="button" class="btn btn-warning btn-sm editbook" data-id="`+bookRow.id+`">
+                                    View
+                                </button>                                    
+                            </td>
+                            </tr>
+                            `;
+            }
+        document.querySelector('#bookheaderdata tbody').innerHTML = html;   
+                 
+    }
+   
+
+
+    $(document).ready( function(){    
+        $(document).on('click', '.search', function(){  
+            let checkdatefrom = document.getElementById("checkdatefrom").value;
+            let checkdateto = document.getElementById("checkdateto").value; 
+            if(checkdatefrom && checkdateto) {
+                $.ajax({
+                url: `/report/${checkdatefrom}/${checkdateto}`,
+                method: viewMode[0],
+                dataType : "JSON",
+                success:  function( data)
+                {
+                    console.log(data)
+                    if(data.book.length > 0) {
+                        const totalmoney = (parseInt(data.totalmoney)).toLocaleString();
+                        $("#totalmoney").val(totalmoney + " VND")
+                        pages = Math.ceil(data.book.length/rowInPage)
+                        const current = 1;
+                        lastPage = Math.ceil(data.book.length/rowInPage)
+                        const _stt = 0;
+
+                        displaypages(pages, current, lastPage);
+                        displayBook(rowInPage, _stt, data.book)
+                    } else {
+                        alert("Dữ liệu tìm kiếm không có. Vui lòng kiểm tra lại")
+                    }
+                }
+                })
+            } else {
+                alert("Vui lòng nhập đầy đủ ngày Báo cáo");
+            }          
+           });
+
+        $(document).on('click', '.pagesindex', function(){
+            var id = $(this).data('id');
+            id = parseInt(id);
+            $.ajax({
+                url: `/report/page/${id-1}0/${rowInPage}`,
+                method: viewMode[0],
+                dataType : "JSON",
+                success:  function( data)
+                {
+                    console.log("data ===> ",data)
+                    let _stt = id-1 + "" + 0;
+                    _stt = parseInt(_stt)
+                    console.log(data);
+                    displaypages(pages, id, lastPage);
+                    const row = parseInt(data.book.length);
+                    displayBook(row, _stt, data.book)
+                }
+            })
+        });
+    });
+
+    
+    
+    </script>

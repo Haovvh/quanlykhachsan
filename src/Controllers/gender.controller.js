@@ -11,7 +11,8 @@ const getGenderById = async (request, response) => {
     console.log("getGenderById")
     try {
 		var {id} = request.params;
-
+		//console.log(request.header())
+		console.log(request.headers)
 		var query = `SELECT *
 		FROM Genders 
 		WHERE id = "${id}"`;
@@ -30,6 +31,31 @@ const getGenderById = async (request, response) => {
 		})
 	}
 }
+
+const searchGender = async (request, response) => {
+    console.log("searchGender")
+    try {
+		var {search} = request.body;
+		//console.log(request.header())
+		var query = `SELECT *
+		FROM Genders 
+		WHERE gendername LIKE '%${id}%' AND isDelete = ${isDelete.false}`;
+		const pool = mysql.createPool(configMysql);
+		const gender = await pool.query(query);
+		response.json({
+			data: gender[0], 
+			success: true
+		});
+		
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
 const postGender = async (request, response) => {
     console.log("postGender")
     try {
@@ -115,6 +141,7 @@ const getAllGender = async (request, response) => {
 	
     try {
 
+		console.log(request.headers.Authorization)
 		console.log("fetch");
 			var query = `SELECT id, gendername
 			FROM Genders 
@@ -142,5 +169,6 @@ module.exports = {
     getGenderById,
 	postGender,
 	putGenderById,
-	deleteGenderById
+	deleteGenderById,
+	searchGender
 };

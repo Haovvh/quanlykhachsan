@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { getAllBook, getBook, getBookByIdFromTo, loadBookData, getBookById, postBook, putBook, deleteBook, putBookSuccess } = require('../Controllers/book.controller');
+const { getAllBook, getBook, loadBookData, getBookById, postBook, putBook, deleteBook, putBookSuccess } = require('../Controllers/booking.controller');
 
 const router = Router();
 
@@ -8,7 +8,6 @@ const router = Router();
     
     router.get('/load', loadBookData);
     router.get('/:id', getBookById);
-    router.get('/page/:id/:rowinpage', getBookByIdFromTo);
     router.post('/', postBook);
     router.put('/', putBook);
     router.put('/success', putBookSuccess);

@@ -33,6 +33,33 @@ const getCustomerTypeById = async (request, response) => {
 		})
 	}
 }
+
+const searchCustomerType = async (request, response) => {
+    console.log("searchCustomerType")
+    try {
+		var {search} = request.body;
+
+		var query = `SELECT *
+		FROM CustomerTypes main
+		WHERE main.customertypename LIKE '%${id}%'`;
+		const pool = mysql.createPool(configMysql);
+		const customertype = await pool.query(query);
+		await pool.end();
+		response.json({
+			data: customertype[0],
+			success: true
+		});
+		
+		
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
 const postCustomerType = async (request, response) => {
     console.log("postCustomerType")
     try {
@@ -142,5 +169,6 @@ module.exports = {
     getCustomerTypeById,
 	postCustomerType,
 	putCustomerTypeById,
-	deleteCustomerTypeById
+	deleteCustomerTypeById,
+	searchCustomerType
 };

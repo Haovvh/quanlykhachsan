@@ -5,10 +5,15 @@
     <div class="card">
         <div class="card-header">
             <div class="row">
-                <div class="col col-sm-9">Room Service</div>
-                <div class="col col-sm-3">
-                    <button type="button" id="addRoomService" class="btn btn-success btn-sm float-end">Add</button>
+                <div class="col-3">
+                    <input type="text" name="search" id="search" class="form-control" placeholder="Tìm kiếm"/>
                 </div>
+                <div class="col-2">
+                    <button type="button" id="search" class="btn btn-success   search">Tìm kiếm</button>
+                </div>
+                <div class="col-6">
+                    <button type="button" id="addRoomService" class="btn btn-primary float-end">Add</button>
+                </div>                
             </div>
         </div>
         <div class="card-body">
@@ -17,8 +22,8 @@
                     <thead>
                         <tr>
                             <th scope="col">STT</th>
-                            <th scope="col">Room Service Name</th>
-                            <th scope="col">Price</th>
+                            <th scope="col">Tên dịch vụ</th>
+                            <th scope="col">Đơn giá (VND)</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -39,11 +44,11 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Room Service Name</label>
+                        <label class="form-label">Tên dịch vụ</label>
                         <input type="text" name="roomservicename" id="roomservicename" class="form-control roomservicename" required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Price</label>
+                        <label class="form-label">Đơn giá (VND)</label>
                         <input type="number" name="price" id="price" class="form-control price" required/>
                     </div> 
                     
@@ -82,13 +87,23 @@
                     if(data.data.length > 0) {
                         for(var count = 0; count < data.data.length; count++)
                         {
+                            let roomservice = data.data[count];
                             let _stt = count+1;
+                            let price = (parseInt(roomservice.price)).toLocaleString();
                             html += `
                             <tr>
                                 <td>`+ _stt +`</td>
-                                <td>`+data.data[count].roomservicename+`</td>
-                                <td>`+data.data[count].price+`</td>
-                                <td><button type="button" class="btn btn-warning btn-sm edit" data-id="`+data.data[count].id+`">Edit</button>&nbsp;<button type="button" class="btn btn-danger btn-sm delete" data-id="`+data.data[count].id+`">Delete</button></td>
+                                <td>`+roomservice.roomservicename+`</td>
+                                <td>`+price+`</td>
+                                <td>
+                                    <button type="button" class="btn btn-warning btn-sm edit" data-id="`+roomservice.id+`">
+                                        Edit
+                                    </button>
+                                    &nbsp;
+                                    <button type="button" class="btn btn-danger btn-sm delete" data-id="`+roomservice.id+`">
+                                        Delete
+                                    </button>
+                                </td>
                             </tr>
                             `;
                         }

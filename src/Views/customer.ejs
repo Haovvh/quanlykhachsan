@@ -5,10 +5,17 @@
     <div class="card">
         <div class="card-header">
             <div class="row">
-                <div class="col col-sm-9">Customer Data</div>
-                <div class="col col-sm-3">
-                    <button type="button" id="add_data" class="btn btn-success btn-sm float-end">Add</button>
+                <div class="col-3">
+                    <input type="text" name="search" id="search" class="form-control" placeholder="Tìm kiếm"/>
                 </div>
+                <div class="col-2">
+                    <button type="button" id="search" class="btn btn-success   search">Tìm kiếm</button>
+                </div>
+                <div class="col-6">
+                    <button type="button" id="add_data" class="btn btn-primary float-end">Add</button>
+                </div>
+                
+                
             </div>
         </div>
         <div class="card-body">
@@ -17,18 +24,21 @@
                     <thead>
                         <tr>
                             <th scope="col">STT</th>
-                            <th scope="col">FullName</th>
-                            <th scope="col">Phone</th>
-                            <th scope="col">Address</th>
-                            <th scope="col">CitizenIdentityCard</th>
-                            <th scope="col">CustomerType</th>
-                            <th scope="col">DateOfBirth</th>
-                            <th scope="col">Gender</th>
+                            <th scope="col">Tên</th>
+                            <th scope="col">SDT</th>
+                            <th scope="col">Địa chỉ</th>
+                            <th scope="col">CCCD</th>
+                            <th scope="col">Loại khách</th>
+                            <th scope="col">Ngày sinh</th>
+                            <th scope="col">Giới tính</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
+                <div class="card-text pages row justify-content-center"  id="pages">
+            
+                </div>
             </div>
         </div>
     </div>
@@ -45,33 +55,33 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">FullName</label>
+                        <label class="form-label">Tên</label>
                         <input type="text" name="fullname" id="fullname" class="form-control" required/>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Phone</label>
+                        <label class="form-label">SDT</label>
                         <input type="text" name="phone" id="phone" class="form-control" required/>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">CitizenIdentityCard </label>
+                        <label class="form-label">CCCD </label>
                         <input type="text" name="citizenIdentityCard" id="citizenIdentityCard" class="form-control" required/>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Address </label>
+                        <label class="form-label">Địa chỉ </label>
                         <input type="text" name="address" id="address" class="form-control" required/>
                     </div>
                     <div class="mb-3" >
-                        <label class="form-label">CustomerType</label>
+                        <label class="form-label">Loại khách</label>
                         <select name="customertype" id="customertype" class="form-control customertype">
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Date Of Birth</label>
+                        <label class="form-label">Ngày sinh</label>
                         <input type="date" class="form-control"  id="dateofbirth" name="dateofbirth" placeholder="DateOfBirth" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Gender</label>
+                        <label class="form-label">Giới tính</label>
                         <select name="gender" id="gender" class="form-control gender">
                         </select>
                     </div>
@@ -89,6 +99,9 @@
 
 
 <script>
+    const rowInPage = 10;
+    var lastPage = 1;
+    var page = 1;
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
     var indexMode = "GET";
 
@@ -97,6 +110,107 @@
     `;
     var _genderType = `
     `;
+    const displaypages = (pages, current, lastPage) =>{
+        var firstPage = 1;
+        var bodyPages = ``;
+        if(pages > 0) { 
+            bodyPages += `
+            <div class="justify-content-center">
+            <nav class="mx-auto justify-content-center">
+            <ul class="pagination justify-content-center" style="margin-top: 2rem;">`;
+            if(current === 1) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>                
+                </li>`;
+            } else { 
+                bodyPages += `
+                <li class="page-item">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>
+                </li>`
+            } 
+            var i = (Number(current) > 3 ? Number(current) - 2 : 1) 
+  
+            if(i !== 1) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link" >...</button>
+                </li>`
+            } 
+            for(; i <= (Number(current) + 2) && i <= pages; i++) { 
+            
+                if(i == current) { 
+                    bodyPages += `
+                    <li class="page-item active">
+                        <button class="page-link pagesindex" id="pagesindex" data-id="`+i+`">${i}</button>                    
+                    </li>`;
+                } else { 
+                    bodyPages += `
+                    <li class="page-item">
+                        <button class="page-link pagesindex" id="pagesindex" data-id="`+i+`">${i}</button>
+                    </li>`
+                } 
+                if (i == Number(current) + 2 && i < pages) { 
+                    bodyPages += `
+                    <li class="page-item disabled">
+                        <button class="page-link" >...</button>
+                    </li>`
+                } 
+            }
+        
+            if(current === pages) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Last</button>                
+                </li>`
+            } else { 
+                bodyPages += `
+                <li class="page-item">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Last</button>                
+                </li>`
+            }
+            bodyPages += `
+                </ul>
+            </nav>
+            </div>`
+        } 
+        document.querySelector('#pages').innerHTML = bodyPages;
+    }
+    const displayRoom = (rowInPage, _stt, customers) => {
+        var html =``;
+        
+       
+        for(var count = 0; count < rowInPage; count++) {
+                let customerRow = customers[count];
+                _stt++;
+                html += `
+                            <tr>
+                                <td>`+ _stt +`</td>
+                                <td>`+customerRow.fullname+`</td>
+                                <td>`+customerRow.phone+`</td>
+                                <td>`+customerRow.address+`</td>
+                                <td>`+customerRow.citizenIdentityCard+`</td>
+                                <td>`+customerRow.customertypename+`</td>
+                                <td>`+customerRow.dateofbirth+`</td>
+                                <td>`+customerRow.gendername+`</td>
+                                
+                                <td>
+                                    <button type="button" class="btn btn-warning btn-sm edit" data-id="`+customerRow.id+`">
+                                        Edit
+                                    </button>
+                                &nbsp;
+                                <button type="button" class="btn btn-danger btn-sm delete" data-id="`+customerRow.id+`">
+                                    Delete
+                                    </button>
+                            </td>
+                        </tr>
+                    `;                
+            }                    
+          
+        document.querySelector('#customer_data tbody').innerHTML = html;
+                 
+    }
+   
 
     $(document).ready( function(){
     
@@ -113,8 +227,7 @@
                 success:function( data)
                 {
                     _customerType =``;
-                    _genderType = ``;
-                    var html = '';     
+                    _genderType = ``;   
                            
                     if(data.customerType.length > 0) {
                         console.log(data.customerType);
@@ -141,27 +254,15 @@
                     }
     
                     if(data.data && data.data.length > 0) {
-                        for(var count = 0; count < data.data.length; count++)
-                        {
-                            let _stt = count+1;
-                            html += `
-                            <tr>
-                                <td>`+ _stt +`</td>
-                                <td>`+data.data[count].fullname+`</td>
-                                <td>`+data.data[count].phone+`</td>
-                                <td>`+data.data[count].address+`</td>
-                                <td>`+data.data[count].citizenIdentityCard+`</td>
-                                <td>`+data.data[count].customertypename+`</td>
-                                <td>`+data.data[count].dateofbirth+`</td>
-                                <td>`+data.data[count].gendername+`</td>
-                                
-                                <td><button type="button" class="btn btn-warning btn-sm edit" data-id="`+data.data[count].id+`">Edit</button>
-                                &nbsp;<button type="button" class="btn btn-danger btn-sm delete" data-id="`+data.data[count].id+`">Delete</button></td>
-                            </tr>
-                            `;
-                        }
+                        pages = Math.ceil(data.data.length/rowInPage)
+                        const current = 1;
+                        lastPage = Math.ceil(data.data.length/rowInPage)
+                        const _stt = 0;
+
+                        displaypages(pages, current, lastPage);
+                        displayRoom(rowInPage, _stt, data.data)
                     }   
-                    document.querySelector('#customer_data tbody').innerHTML = html;   
+                       
                     indexMode = viewMode[1]
                 }
             });
@@ -300,6 +401,51 @@
                 });
             }
     
+        });
+        $(document).on('click', '.pagesindex', function(){
+            var id = $(this).data('id');
+            id = parseInt(id);
+            $.ajax({
+                url: `/customer/page/${id-1}0/${rowInPage}`,
+                method: viewMode[0],
+                dataType : "JSON",
+                success:  function( data)
+                {
+                    let _stt = id-1 + "" + 0;
+                    _stt = parseInt(_stt)
+                    console.log(data);
+                    displaypages(pages, id, lastPage);
+                    const row = parseInt(data.customers.length);
+                    displayRoom(row, _stt, data.customers)
+                }
+            })
+        });
+        $(document).on('click', '.search', function(){
+            let search = document.getElementById('search').value;
+            $.ajax({
+                url: `/customer/search`,
+                method: viewMode[1],
+                data: {search: search},
+                dataType : "JSON",
+                success:  function( data)
+                {
+                    console.log(data)
+                    if(data.data && data.data.length > 0) {
+                        pages = Math.ceil(data.data.length/rowInPage)
+                        const current = 1;
+                        lastPage = Math.ceil(data.data.length/rowInPage)
+                        const _stt = 0;
+                        var row = 0;
+                        if(data.data.length < rowInPage){
+                            row = data.data.length;
+                        } else {
+                            row = rowInPage;
+                        }
+                        displaypages(pages, current, lastPage);
+                        displayRoom(row, _stt, data.data)
+                    }
+                }
+            })
         });
     });
     

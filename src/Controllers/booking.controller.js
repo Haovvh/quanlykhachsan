@@ -16,31 +16,28 @@ const queryBookDetailByBookid =
 const getBook = async (request, response) => {
 	console.log("Get All book")
 		
-	response.render('Book', {title : 'Book Information'});
+	response.render('Booking', {title : 'Book Information'});
 }
 const getAllBook = async (request, response) =>{
 	console.log("getAllBook")
 	try {
 			var queryBooks = `SELECT main.id,  cus.fullname, 
-			roo.roomname , main.statusBook, pay.paymentname  , main.checkindate, 
+			roo.roomname , pay.paymentname  , main.checkindate, 
 			main.checkoutdate, main.totalmoney, sta.statusname 
 			FROM Books main 
 			LEFT JOIN Bookdetails det ON (main.id = det.bookid) 
 			LEFT JOIN Rooms roo ON (main.roomid = roo.id)
 			LEFT JOIN Payments pay ON (main.paymentid = pay.id)
 			LEFT JOIN Customers cus ON (det.customerid = cus.id)
+			LEFT JOIN RoomServiceDetails rod ON (main.id = rod.bookid)
+			LEFT JOIN RoomServices ros ON (rod.roomserviceid = ros.id)
 			LEFT JOIN Statuss sta ON (sta.id = main.statusbook)
 			WHERE det.id = 1  AND main.isDelete = ${isDelete.false}  
-			ORDER BY main.checkindate DESC
+			ORDER BY main.id ASC
 			`; 
 			const pool = mysql.createPool(configMysql);
 			var books = await pool.query(queryBooks);
 			books = books[0];
-			
-			for( let i = 0; i <books.length; i++ ) {
-				books[i].checkindate = books[i].checkindate.toLocaleString();
-				books[i].checkoutdate = books[i].checkoutdate.toLocaleString();
-			}
 			await pool.end();			
 			response.json({
 				book: books,
@@ -56,68 +53,24 @@ const getAllBook = async (request, response) =>{
 		})
 	}
 }
-const getBookByIdFromTo = async (request, response) =>{
-	console.log("getAllBook")
-	try {
-		const {id, rowinpage} = request.params;
-		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
-			var queryBooks = `SELECT main.id,  cus.fullname, 
-			roo.roomname , main.statusBook, pay.paymentname  , main.checkindate, 
-			main.checkoutdate, main.totalmoney, sta.statusname 
-			FROM Books main 
-			LEFT JOIN Bookdetails det ON (main.id = det.bookid) 
-			LEFT JOIN Rooms roo ON (main.roomid = roo.id)
-			LEFT JOIN Payments pay ON (main.paymentid = pay.id)
-			LEFT JOIN Customers cus ON (det.customerid = cus.id)
-			LEFT JOIN Statuss sta ON (sta.id = main.statusbook)
-			WHERE det.id = 1  AND main.isDelete = ${isDelete.false}  
-			ORDER BY main.checkindate DESC
-			LIMIT ? , ?
-			`; 
-			const pool = mysql.createPool(configMysql);
-			var books = await pool.query(queryBooks, [parseInt(id), parseInt(rowinpage)]);
-			books = books[0];
-			
-			for( let i = 0; i <books.length; i++ ) {
-				books[i].checkindate = books[i].checkindate.toLocaleString();
-				books[i].checkoutdate = books[i].checkoutdate.toLocaleString();
-			}
-			await pool.end();			
-			response.json({
-				book: books,
-				success: true
-			});
-			
-		
-	} catch (error) {
-		console.log("Error ::: ", error.message);
-		response.json({
-			message: error.message,
-			success: false
-		})
-	}
-}
-
 const getBookById = async (request, response) =>{
 	console.log("getBoook ===>")
 	try {
 		const {id} = request.params;
 	
 		const queryBook = `
-		SELECT main.*, roo.roomname, bde.*, rot.*, pay.paymentname, sta.statusname
+		SELECT main.*, roo.roomname, bde.*, rot.*, pay.paymentname 
 		FROM Books main
 		LEFT JOIN Rooms roo on (main.roomid = roo.id)
 		LEFT JOIN Payments pay on (main.paymentid = pay.id)
 		LEFT JOIN BookDetails bde on (main.id = bde.bookid)
 		LEFT JOIN RoomTypes rot ON (roo.roomtype = rot.id)
-		LEFT JOIN Statuss sta on (main.StatusBook = sta.id)
 		WHERE main.id = ? AND main.isDelete = ?
-		AND bde.id = 1
+		AND main.statusBook = ? AND bde.id = 1
 		ORDER BY main.id ASC
 		`;
 		const queryBookDetail = `
-		SELECT main.*, cus.fullname, cus.phone, cus.citizenIdentityCard, cut.customertypename 
-		FROM BookDetails main
+		SELECT main.*, cus.fullname, cus.phone, cus.citizenIdentityCard, cut.customertypename FROM BookDetails main
 		LEFT JOIN Customers cus on (main.customerid = cus.id)
 		LEFT JOIN Customertypes cut on (cus.customertype = cut.id)
 		WHERE main.bookid =${id} AND main.isDelete = ${isDelete.false} 
@@ -125,97 +78,22 @@ const getBookById = async (request, response) =>{
 		`;
 
 		const queryRoomServiceDetail = `
-		SELECT main.roomserviceid, roo.roomservicename, roo.price, main.quantity 
-		FROM RoomServiceDetails main
+		SELECT main.roomserviceid, main.quantity FROM RoomServiceDetails main
 		LEFT JOIN RoomServices roo on (main.roomserviceid = roo.id)
 		WHERE main.bookid = ${id} AND main.isDelete = ${isDelete.false} 
 		ORDER BY main.id ASC
 		`;
 		const pool = mysql.createPool(configMysql);
-		var books = await pool.query(queryBook, [id, isDelete.false]);
+		var book = await pool.query(queryBook, [id, isDelete.false, statusBook.CHUATHANHTOAN]);
 
 		const bookdetail = await pool.query(queryBookDetail);
 		const roomservicedetail = await pool.query(queryRoomServiceDetail);
 		await pool.end();
-		books = books[0];		
-		for( let i = 0; i <books.length; i++ ) {
-			books[i].checkindate = books[i].checkindate.toLocaleString();
-			books[i].checkoutdate = books[i].checkoutdate.toLocaleString();
-		}
-		console.log("queryboook ====> ", books)
-		console.log("bookdetail ====> ", bookdetail[0])
-		console.log("roomservicedetail ====> ", roomservicedetail[0])
-		response.json({
-			book: books, 
-			bookdetail: bookdetail[0],
-			roomservicedetail: roomservicedetail[0],
-			success: true
-		})
+		book = book[0];
 		
-	
-	} catch (error) {
-		console.log("Error ::: ", error.message);
+		console.log("queryboook ====> ", book)
 		response.json({
-			message: error.message,
-			success: false
-		})
-	}
-}
-
-const searchBook = async (request, response) =>{
-	console.log("getBoook ===>")
-	try {
-		const {search} = request.body;
-	
-		const queryBook = `
-		SELECT main.*, roo.roomname, bde.*, rot.*, 
-		pay.paymentname, sta.statusname, cus.fullname
-		FROM Books main
-		LEFT JOIN Rooms roo on (main.roomid = roo.id)
-		LEFT JOIN Payments pay on (main.paymentid = pay.id)
-		LEFT JOIN BookDetails bde on (main.id = bde.bookid)
-		LEFT JOIN Customers cus on (bde.customerid = cus.id)
-		LEFT JOIN RoomTypes rot ON (roo.roomtype = rot.id)
-		LEFT JOIN Statuss sta on (main.StatusBook = sta.id)
-		WHERE roo.rooname LIKE '%${search}%' 
-		AND sta.statusname LIKE '%${search}%' 
-		AND cus.fullname LIKE '%${search}%' 
-		AND main.isDelete = ?
-		AND bde.id = 1
-		ORDER BY main.id ASC
-		`;
-		const queryBookDetail = `
-		SELECT main.*, cus.fullname, cus.phone, cus.citizenIdentityCard, cut.customertypename 
-		FROM BookDetails main
-		LEFT JOIN Customers cus on (main.customerid = cus.id)
-		LEFT JOIN Customertypes cut on (cus.customertype = cut.id)
-		WHERE main.bookid =${id} AND main.isDelete = ${isDelete.false} 
-		ORDER BY main.id ASC
-		`;
-
-		const queryRoomServiceDetail = `
-		SELECT main.roomserviceid, roo.roomservicename, roo.price, main.quantity 
-		FROM RoomServiceDetails main
-		LEFT JOIN RoomServices roo on (main.roomserviceid = roo.id)
-		WHERE main.bookid = ${id} AND main.isDelete = ${isDelete.false} 
-		ORDER BY main.id ASC
-		`;
-		const pool = mysql.createPool(configMysql);
-		var books = await pool.query(queryBook, [id, isDelete.false]);
-
-		const bookdetail = await pool.query(queryBookDetail);
-		const roomservicedetail = await pool.query(queryRoomServiceDetail);
-		await pool.end();
-		books = books[0];		
-		for( let i = 0; i <books.length; i++ ) {
-			books[i].checkindate = books[i].checkindate.toLocaleString();
-			books[i].checkoutdate = books[i].checkoutdate.toLocaleString();
-		}
-		console.log("queryboook ====> ", books)
-		console.log("bookdetail ====> ", bookdetail[0])
-		console.log("roomservicedetail ====> ", roomservicedetail[0])
-		response.json({
-			book: books, 
+			book: book, 
 			bookdetail: bookdetail[0],
 			roomservicedetail: roomservicedetail[0],
 			success: true
@@ -453,22 +331,19 @@ const putBookSuccess = async (request, response) =>{
 const deleteBook = (request, response) =>{
 	console.log("deleteBook")
 }
-
 const loadBookData = async (request, response) =>{
 	console.log(" loadBookData loadBookData loadBookData ==>")
 	try {
 		console.log("loadBookData")
 
-		const queryRoom = `SELECT main.*, roo.roomtypename, roo.price 
-		FROM Rooms main 
-		LEFT JOIN Roomtypes roo ON (main.roomtype = roo.id)
-		WHERE roo.isDelete = ${isDelete.false} AND main.isDelete =${isDelete.false} `;
+		const queryRoom = `SELECT main.*, roo.roomtypename, roo.price FROM Rooms main 
+			LEFT JOIN Roomtypes roo ON (main.roomtype = roo.id)
+			WHERE roo.isDelete = ${isDelete.false} AND main.isDelete =${isDelete.false} AND main.status = 1`;
 		const queryPayment = `SELECT * FROM Payments WHERE  isDelete = ${isDelete.false}`;
 
-		const queryCustomer = `SELECT main.*, cus.customertypename 
-		FROM Customers main 
-		LEFT JOIN Customertypes cus ON (main.customertype = cus.id)
-		WHERE main.isDelete = ${isDelete.false} AND cus.isDelete = ${isDelete.false}`;
+		const queryCustomer = `SELECT main.*, cus.customertypename FROM Customers main 
+			LEFT JOIN Customertypes cus ON (main.customertype = cus.id)
+			WHERE main.isDelete = ${isDelete.false} AND cus.isDelete = ${isDelete.false}`;
 
 		const queryRoomService = `SELECT * FROM RoomServices WHERE isDelete = ${isDelete.false}`;
 
@@ -498,9 +373,6 @@ const loadBookData = async (request, response) =>{
 
 
 module.exports = {
-    getBookById, postBook, putBook, 
-	deleteBook, getAllBook, loadBookData, 
-	getBook, putBookSuccess, getBookByIdFromTo,
-	searchBook
+    getBookById, postBook, putBook, deleteBook, getAllBook, loadBookData, getBook, putBookSuccess
 };
 
