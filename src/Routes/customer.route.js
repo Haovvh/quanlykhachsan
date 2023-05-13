@@ -9,18 +9,18 @@ const {
     getCustomerByIdFromTo,
     searchCustomer
 } = require('../Controllers/customer.controller');
-
+const {validateToken} = require('../Helpers/validateToken.helper');
 
 const router = express.Router();
 
     
     router.get('/', getCustomer);
-    router.get('/all', getAllCustomer);
-    router.get('/:id', getCustomerById);
-    router.get('/page/:id/:rowinpage', getCustomerByIdFromTo);
-    router.post('/', postCustomer);
-    router.post('/search', searchCustomer);
-    router.put('/', putCustomerById);
-    router.delete('/', deleteCustomerById);
+    router.get('/all',validateToken, getAllCustomer);
+    router.get('/:id',validateToken, getCustomerById);
+    router.get('/page/:id/:rowinpage',validateToken, getCustomerByIdFromTo);
+    router.post('/',validateToken, postCustomer);
+    router.post('/search',validateToken, searchCustomer);
+    router.put('/',validateToken, putCustomerById);
+    router.delete('/',validateToken, deleteCustomerById);
 
 module.exports = router;

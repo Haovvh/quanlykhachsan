@@ -1,6 +1,7 @@
 <!-- Book -->
+
 <div class="container bookform" id="bookform">
-    <h1 class="mt-4 mb-4 text-center text-primary"><b>Book Information</b></h1>
+    <h1> <% title %></h1>
     <div class="card row">
         <div class="card-header">
             <div class="row">
@@ -93,7 +94,7 @@
 
 
 <script>
-    const rowInPage = 10;
+    var rowInPage = 10;
     const statusBook = ["CHUATHANHTOAN", "DATHANHTOAN"]
     const ViewModeCustomer = ["CREATE","EDITCUSTOMER","DELETECUSTOMER"]
     const ViewModeServiceDetail = ["CREATE","EDITSERVICEDETAIL","DELETESERVICEDETAIL"]
@@ -125,6 +126,13 @@
     var bookViewMode = '';
     var lastPage = 1;
     var pages = 1;
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    var token = "";
+    if (user && user.accessToken) {
+        
+        token = `Bearer ${user.accessToken}`
+    }
     
     const headerCustomer = `
                 <div class="col">
@@ -426,10 +434,11 @@
 
     const displayBook = (rowInPage, _stt, books) => {
         var html =``;
-        console.log("rowInPage  ==> ", rowInPage ,"_stt ==>", _stt, "boooksssss =>",books)
+        
         for(var count = 0; count < rowInPage; count++)
             {                            
                 let bookRow = books[count];
+                let totalmoney = parseInt((bookRow.totalmoney)).toLocaleString(undefined)
                 _stt++
                 html += `
                     <tr>
@@ -438,14 +447,9 @@
                         <td>`+bookRow.roomname+`</td>
                         <td>`+bookRow.paymentname+`</td>
                         <td>`+bookRow.checkindate+`</td>
-                        <td>`+bookRow.checkoutdate+`</td>`;
-                        if(bookRow.statusBook === statusBook[1]){
-                            html+= `<td style="background-color: green;">`+bookRow.statusname+`</td>`
-                        } else if(bookRow.statusBook === statusBook[0]) {
-                            html+= `<td style="background-color: orange;">`+bookRow.statusname+`</td>`
-                        }
-                        html +=`
-                            <td>`+bookRow.totalmoney+`</td>
+                        <td>`+bookRow.checkoutdate+`</td>
+                        <td>`+bookRow.statusname+`</td>
+                        <td>`+totalmoney+`</td>
                             <td>
                                 <button type="button" class="btn btn-warning btn-sm editbook" data-id="`+bookRow.id+`">
                                     View
@@ -453,6 +457,7 @@
                             </td>
                             </tr>
                             `;
+                        
             }
         document.querySelector('#bookheaderdata tbody').innerHTML = html;   
                  
@@ -461,6 +466,25 @@
 
     $(document).ready( function(){
     
+        load_role();    
+        function load_role() {  
+            console.log("load_role")   
+            bookViewMode = BOOKMODE[0];
+            
+            $.ajax({
+                url: '/book/role',
+                method:viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
+                dataType : "JSON",
+                success:function( data)
+                {
+                    console.log("data load :", data)
+                }
+            });
+        }        
+
         load_data();    
         function load_data() {  
             console.log("load_data Book")   
@@ -471,15 +495,18 @@
                 url: '/book/all',
                 method:viewMode[0],
                 headers: {
-                    'Authorization':'Basic xxxxxxxxxxxxx',
-                    'X-CSRF-TOKEN':'xxxxxxxxxxxxxxxxxxxx',
-                    'Content-Type':'application/json'
+                    'Authorization':token
                 },
                 dataType : "JSON",
                 success:function( data)
                 {
                     console.log("data load :", data)
-                    if(data.book.length > 0) {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
+                    if(data.book.length > 0 && data.success) {
+                        rowInPage = data.rowInPage;
                         pages = Math.ceil(data.book.length/rowInPage)
                         const current = 1;
                         lastPage = Math.ceil(data.book.length/rowInPage)
@@ -488,7 +515,6 @@
                         displaypages(pages, current, lastPage);
                         displayBook(rowInPage, _stt, data.book)
                     }   
-                    //loadBookDetail(); 
                     
                 }
 
@@ -500,9 +526,16 @@
             $.ajax({
                 url: `/book/${bookid}` ,
                 method: viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
                 dataType : "JSON",
                 success: function( data){
                     console.log(data)
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     if(data.success) {
                         console.log("loadBookByBookId ====>", data)                        
                         book = data.book;
@@ -562,9 +595,16 @@
             $.ajax({
                 url: '/book/load',
                 method: viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
                 dataType : "JSON",
                 success:  function( data)
                 {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     console.log("data book load",data)
                     rooms = data.rooms
                     const tempRoom = data.rooms
@@ -575,6 +615,44 @@
             });
             
         }
+
+        $(document).on('click', '.search', function(){
+            let search = document.getElementById('search').value;
+            $.ajax({
+                url: `/book/search`,
+                method: viewMode[1],
+                headers: {
+                    'Authorization':token
+                },
+                data: {search: search},
+                dataType : "JSON",
+                success:  function( data)
+                {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
+                    console.log("==>",data)
+                    if(data.data && data.data.length > 0) {
+                        pages = Math.ceil(data.data.length/rowInPage)
+                        const current = 1;
+                        lastPage = Math.ceil(data.data.length/rowInPage)
+                        const _stt = 0;
+                        var row = 0;
+                        if(data.data.length < rowInPage){
+                            row = data.data.length;
+                        } else {
+                            row = rowInPage;
+                        }
+                        displaypages(pages, current, lastPage);
+                        displayBook(row, _stt, data.data)
+                    } else {
+                        alert("Dữ liệu tìm kiếm không phù hợp")
+                    }
+                }
+            })
+        });
+    
         
         $(document).on('click', '.pagesindex', function(){
             var id = $(this).data('id');
@@ -582,9 +660,16 @@
             $.ajax({
                 url: `/book/page/${id-1}0/${rowInPage}`,
                 method: viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
                 dataType : "JSON",
                 success:  function( data)
                 {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     let _stt = id-1 + "" + 0;
                     _stt = parseInt(_stt)
                     console.log(data);

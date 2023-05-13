@@ -1,12 +1,13 @@
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
-const database = require('../config/mysql');
-const { isDelete } = require('../utils/const'); 
+const { isDelete, rowInPage } = require('../utils/const'); 
+const {verifiedToken} = require('../Helpers/validateToken.helper')
 
 const getRoomService = async (request, res) => {
     console.log("getRoomService")
-    res.render('RoomService', {title : 'RoomService Information'});
+    res.render('RoomService', {title : 'RoomServices', role:'admin'});
 }
+
 const postRoomService = async (request, response) => {
     try {
 		console.log("postRoomService")
@@ -31,6 +32,7 @@ const postRoomService = async (request, response) => {
 		})
 	}
 }
+
 const putRoomServiceById = async (request, response) => {
     try {
 		console.log("putRoomService")
@@ -60,6 +62,7 @@ const putRoomServiceById = async (request, response) => {
 		})
 	}
 }
+
 const deleteRoomServiceById = async (request, response) => {
     try {
 		console.log("postRoomService")
@@ -83,6 +86,7 @@ const deleteRoomServiceById = async (request, response) => {
 		})
 	}
 }
+
 const getRoomServiceById = async (request, response) => {
 	try {
 		const {id} = request.params;
@@ -114,20 +118,22 @@ const searchRoomService = async (request, response) => {
 
 		var query = `SELECT *
 		FROM RoomServices 
-		WHERE roomservicename LIKE '%${search}% AND isDelete = ${isDelete.false}`;
+		WHERE roomservicename LIKE '%${search}%' AND isDelete = ${isDelete.false}`;
 		const pool = mysql.createPool(configMysql);
 		
 		const roomService = await pool.query(query);
 		response.json({
 			data:roomService[0],
-			success: true
+			success: true, 
+			rowInPage: rowInPage
 		});
 
 	} catch (error) {
 		console.log("Error ::: ", error.message);
 		response.json({
 			message: error.message,
-			success: false
+			success: false, 
+			rowInPage: rowInPage
 		})
 	}
 }
@@ -142,9 +148,12 @@ const getAllRoomService = async (request, response) => {
 		
 			const pool = mysql.createPool(configMysql);
 			const roomServices = await pool.query(query);
+			await pool.end();
+			
 			response.json({
 				data: roomServices[0],
-				success: true                    
+				success: true,
+				rowInPage: rowInPage                    
 			});
 
     } catch (error) {
@@ -155,6 +164,38 @@ const getAllRoomService = async (request, response) => {
 		})
     }	
 }
+
+const getRoomServiceByIdFromTo = async (request, response) =>{
+	console.log("getRoomTypeByIdFromTo")
+	try {
+		const {id, rowinpage} = request.params;
+		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+			
+			var query = `SELECT *
+			FROM RoomServices 
+			WHERE isDelete = ${isDelete.false}  
+			ORDER BY main.id ASC
+			LIMIT ? , ?`;
+			
+			const pool = mysql.createPool(configMysql);
+			const data = await pool.query(query, [parseInt(id), parseInt(rowinpage)]);
+			
+			await pool.end();			
+			response.json({
+				data: data[0],
+				success: true
+			});
+			
+		
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
 module.exports = {
     getRoomService,
     getAllRoomService,
@@ -162,5 +203,6 @@ module.exports = {
 	postRoomService,
 	putRoomServiceById,
 	deleteRoomServiceById,
-	searchRoomService
+	searchRoomService,
+	getRoomServiceByIdFromTo
 };

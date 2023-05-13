@@ -5,8 +5,11 @@ const path = require('path');
  */
 const configViewEngine = (app)=> {
     app.use(express.static(path.join(__dirname, '../public')));
+    app.use(express.static(path.join(__dirname, '../')));
     app.set("view engine", "ejs");
     app.set("views",path.join(__dirname, '../views'));
+    app.set('layout', '../Views/layout.ejs')
+    app.set('layoutstaff','../Views/layoutstaff.ejs')
 };
 
 module.exports = configViewEngine;

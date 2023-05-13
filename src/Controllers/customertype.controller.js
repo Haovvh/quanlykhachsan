@@ -1,11 +1,12 @@
 const database = require('../config/mysql');
-const { isDelete } = require('../utils/const'); 
+const { isDelete, rowInPage } = require('../utils/const'); 
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
+const {verifiedToken} = require('../Helpers/validateToken.helper')
 
 const getCustomerType = async (request, res) => {
     console.log("getCustomerType")
-    res.render('CustomerType', {title : 'CustomerType Information'});
+    res.render('CustomerType', {title : 'CustomerTypes', role:'admin'});
 }
 
 const getCustomerTypeById = async (request, response) => {
@@ -41,15 +42,46 @@ const searchCustomerType = async (request, response) => {
 
 		var query = `SELECT *
 		FROM CustomerTypes main
-		WHERE main.customertypename LIKE '%${id}%'`;
+		WHERE main.customertypename LIKE '%${search}%'`;
 		const pool = mysql.createPool(configMysql);
 		const customertype = await pool.query(query);
 		await pool.end();
 		response.json({
 			data: customertype[0],
-			success: true
+			success: true, 
+			rowInPage: rowInPage
 		});
 		
+		
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
+const getCustomerTypeByIdFromTo = async (request, response) =>{
+	console.log("getCustomerByIdFromTo")
+	try {
+		const {id, rowinpage} = request.params;
+		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+			
+			var query = `SELECT *
+			FROM CustomerTypes 
+			WHERE isDelete = ${isDelete.false}  
+			ORDER BY main.id ASC
+			LIMIT ? , ?`;
+			
+			const pool = mysql.createPool(configMysql);
+			const data = await pool.query(query, [parseInt(id), parseInt(rowinpage)]);
+			
+			await pool.end();			
+			response.json({
+				data: data[0],
+			});
+			
 		
 	} catch (error) {
 		console.log("Error ::: ", error.message);
@@ -150,7 +182,8 @@ const getAllCustomerType = async (request, response) => {
 		await pool.end();
 		response.json({
 			data: customertypes[0],
-			success: true                 
+			success: true, 
+			rowInPage: rowInPage                 
 		});				
 
     } catch (error) {
@@ -170,5 +203,6 @@ module.exports = {
 	postCustomerType,
 	putCustomerTypeById,
 	deleteCustomerTypeById,
-	searchCustomerType
+	searchCustomerType,
+	getCustomerTypeByIdFromTo
 };

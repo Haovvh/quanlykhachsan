@@ -1,6 +1,9 @@
-const { isDelete, statusRoom, statusBook } = require('../utils/const'); 
+const { isDelete, statusRoom, statusBook, rowInPage } = require('../utils/const'); 
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
+const {verifiedToken} = require('../Helpers/validateToken.helper')
+const {decodeToken} = require('../Helpers/decodeToken.helper');
+const { user } = require('../config/mysql.config');
 
 
 const queryRoomServiceDetailByBookid =
@@ -14,12 +17,26 @@ const queryBookDetailByBookid =
 	WHERE bookid = ? `;
 
 const getBook = async (request, response) => {
-	console.log("Get All book")
 		
-	response.render('Book', {title : 'Book Information'});
+	response.render('Book', {title : 'Books'})
 }
+
+const getBookByRole = async (request, response) => {
+	let token = request.headers.authorization;
+    token = token.replace('Bearer ', '')
+	const role = decodeToken(token, process.env.KEY_JWTOKEN).role || '';
+	
+	if (role === 'staff') {
+		
+		response.render('Book', {title : 'Books',layout:'layoutstaff'})
+		return;
+	}
+	
+	response.render('Book', {title : 'Books', layout:"layout"})
+}
+
 const getAllBook = async (request, response) =>{
-	console.log("getAllBook")
+	
 	try {
 			var queryBooks = `SELECT main.id,  cus.fullname, 
 			roo.roomname , main.statusBook, pay.paymentname  , main.checkindate, 
@@ -44,7 +61,8 @@ const getAllBook = async (request, response) =>{
 			await pool.end();			
 			response.json({
 				book: books,
-				success: true
+				success: true, 
+				rowInPage: rowInPage
 			});
 			
 		
@@ -60,7 +78,7 @@ const getBookByIdFromTo = async (request, response) =>{
 	console.log("getAllBook")
 	try {
 		const {id, rowinpage} = request.params;
-		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+		
 			var queryBooks = `SELECT main.id,  cus.fullname, 
 			roo.roomname , main.statusBook, pay.paymentname  , main.checkindate, 
 			main.checkoutdate, main.totalmoney, sta.statusname 
@@ -99,18 +117,21 @@ const getBookByIdFromTo = async (request, response) =>{
 }
 
 const getBookById = async (request, response) =>{
-	console.log("getBoook ===>")
+	console.log("getBookById ===>")
 	try {
 		const {id} = request.params;
 	
 		const queryBook = `
-		SELECT main.*, roo.roomname, bde.*, rot.*, pay.paymentname, sta.statusname
+		SELECT main.*, roo.roomname, bde.*, rot.*, 
+		pay.paymentname, sta.statusname,
+		staf.username
 		FROM Books main
 		LEFT JOIN Rooms roo on (main.roomid = roo.id)
 		LEFT JOIN Payments pay on (main.paymentid = pay.id)
 		LEFT JOIN BookDetails bde on (main.id = bde.bookid)
 		LEFT JOIN RoomTypes rot ON (roo.roomtype = rot.id)
 		LEFT JOIN Statuss sta on (main.StatusBook = sta.id)
+		LEFT JOIN Staffs staf on (main.staffid = staf.id)
 		WHERE main.id = ? AND main.isDelete = ?
 		AND bde.id = 1
 		ORDER BY main.id ASC
@@ -142,9 +163,6 @@ const getBookById = async (request, response) =>{
 			books[i].checkindate = books[i].checkindate.toLocaleString();
 			books[i].checkoutdate = books[i].checkoutdate.toLocaleString();
 		}
-		console.log("queryboook ====> ", books)
-		console.log("bookdetail ====> ", bookdetail[0])
-		console.log("roomservicedetail ====> ", roomservicedetail[0])
 		response.json({
 			book: books, 
 			bookdetail: bookdetail[0],
@@ -166,10 +184,11 @@ const searchBook = async (request, response) =>{
 	console.log("getBoook ===>")
 	try {
 		const {search} = request.body;
-	
+		 
 		const queryBook = `
-		SELECT main.*, roo.roomname, bde.*, rot.*, 
-		pay.paymentname, sta.statusname, cus.fullname
+		SELECT main.id,  cus.fullname, 
+		roo.roomname , main.statusBook, pay.paymentname  , main.checkindate, 
+		main.checkoutdate, main.totalmoney, sta.statusname
 		FROM Books main
 		LEFT JOIN Rooms roo on (main.roomid = roo.id)
 		LEFT JOIN Payments pay on (main.paymentid = pay.id)
@@ -177,48 +196,27 @@ const searchBook = async (request, response) =>{
 		LEFT JOIN Customers cus on (bde.customerid = cus.id)
 		LEFT JOIN RoomTypes rot ON (roo.roomtype = rot.id)
 		LEFT JOIN Statuss sta on (main.StatusBook = sta.id)
-		WHERE roo.rooname LIKE '%${search}%' 
-		AND sta.statusname LIKE '%${search}%' 
-		AND cus.fullname LIKE '%${search}%' 
+		WHERE  cus.fullname LIKE '%${search}%' 
+		OR roo.roomname LIKE '%${search}%' 
+		OR sta.statusname LIKE '%${search}%' 		
 		AND main.isDelete = ?
 		AND bde.id = 1
-		ORDER BY main.id ASC
-		`;
-		const queryBookDetail = `
-		SELECT main.*, cus.fullname, cus.phone, cus.citizenIdentityCard, cut.customertypename 
-		FROM BookDetails main
-		LEFT JOIN Customers cus on (main.customerid = cus.id)
-		LEFT JOIN Customertypes cut on (cus.customertype = cut.id)
-		WHERE main.bookid =${id} AND main.isDelete = ${isDelete.false} 
-		ORDER BY main.id ASC
-		`;
-
-		const queryRoomServiceDetail = `
-		SELECT main.roomserviceid, roo.roomservicename, roo.price, main.quantity 
-		FROM RoomServiceDetails main
-		LEFT JOIN RoomServices roo on (main.roomserviceid = roo.id)
-		WHERE main.bookid = ${id} AND main.isDelete = ${isDelete.false} 
-		ORDER BY main.id ASC
+		ORDER BY main.checkindate DESC
 		`;
 		const pool = mysql.createPool(configMysql);
-		var books = await pool.query(queryBook, [id, isDelete.false]);
-
-		const bookdetail = await pool.query(queryBookDetail);
-		const roomservicedetail = await pool.query(queryRoomServiceDetail);
+		var books = await pool.query(queryBook,[isDelete.false]);
+				
 		await pool.end();
 		books = books[0];		
 		for( let i = 0; i <books.length; i++ ) {
 			books[i].checkindate = books[i].checkindate.toLocaleString();
 			books[i].checkoutdate = books[i].checkoutdate.toLocaleString();
 		}
-		console.log("queryboook ====> ", books)
-		console.log("bookdetail ====> ", bookdetail[0])
-		console.log("roomservicedetail ====> ", roomservicedetail[0])
+		
 		response.json({
-			book: books, 
-			bookdetail: bookdetail[0],
-			roomservicedetail: roomservicedetail[0],
-			success: true
+			data: books, 
+			success: true, 
+			rowInPage: rowInPage
 		})
 		
 	
@@ -233,8 +231,10 @@ const searchBook = async (request, response) =>{
 const postBook = async (request, response) =>{
 	console.log("postBook")
 	try {		
-		console.log("===>request ::: ", request.body)
-		const { idroom, paymentid, customerid, roomserviceid, quantityTemp, checkindate, checkoutdate, totalmoney} = request.body;
+		
+		const { idroom, paymentid, customerid, 
+			roomserviceid, quantityTemp, checkindate, checkoutdate, totalmoney} 
+			= request.body;
 
 		if(!(customerid && customerid.length >0)) {
 			response.json({
@@ -243,22 +243,25 @@ const postBook = async (request, response) =>{
 			})
 			return;
 		}		
-		console.log("1")
+		
 		const pool = mysql.createPool(configMysql)
 		//xóa dữ liệu cũ
 		var bookidtemp = 0;		
 
-		const check = await pool.query(`INSERT INTO Books (roomid, paymentid, checkoutdate, checkindate, totalmoney)	
-		VALUES (?, ?, ?, ?, ?) `, [idroom, paymentid, checkoutdate, checkindate, totalmoney]);
-		console.log("2")
-		await pool.query(`UPDATE Rooms SET status = ? WHERE id = ?`,[statusRoom.DANGTHUE, idroom])
+		const check = await pool.query(`
+		INSERT INTO Books (roomid, paymentid, checkoutdate, checkindate, totalmoney)	
+		VALUES (?, ?, ?, ?, ?) `, 
+		[idroom, paymentid, checkoutdate, checkindate, totalmoney]);
+		
+		await pool.query(`UPDATE Rooms SET status = ? WHERE id = ?`,
+		[statusRoom.DANGTHUE, idroom])
 
 		bookidtemp = check[0].insertId;
-		console.log("3")
+		
 		if(bookidtemp !== 0) {
 			var valueBookdetail ="";	
 			//phải có khách hàng			
-			console.log("4")
+			
 			if(customerid && customerid.length >0) {	
 				if(typeof(customerid) === 'object') {
 					for(let index = 0 ; index <customerid.length ; index++){
@@ -271,7 +274,7 @@ const postBook = async (request, response) =>{
 
 					valueBookdetail = `(1 , ${bookidtemp}, ${customerid}) `;
 				}
-				console.log("5")
+				
 				let queryBookDetail =`INSERT INTO Bookdetails(id, bookid, customerid)
 				VALUES ${valueBookdetail} `;
 
@@ -316,7 +319,7 @@ const putBook = async (request, response) =>{
 	console.log("putBook ===>>>>")
 	try {	
 		
-		console.log("===>request ::: ", request.body)
+		
 		const {bookid, idroom, paymentid, customerid, roomserviceid, quantityTemp, checkoutdate, totalmoney} = request.body;
 		
 		if(!(customerid && customerid.length >0)) {
@@ -329,7 +332,7 @@ const putBook = async (request, response) =>{
 		const pool = mysql.createPool(configMysql)
 		//xóa dữ liệu cũ
 		if(bookid) {
-			console.log("bookid")
+			
 			var deleteRoomService = ``;			
 			let roomServiceDetailByBookid = await pool.query(queryRoomServiceDetailByBookid, [bookid]);
 			roomServiceDetailByBookid = roomServiceDetailByBookid[0];
@@ -356,13 +359,13 @@ const putBook = async (request, response) =>{
 				await pool.query(deleteRoomService);
 			}	
 			const temp1 = await pool.query(`SELECT * FROM Books WHERE id = ?`, [bookid]);
-			console.log("temp1 ===> ", temp1[0][0]); 
+			
 
 			await pool.query(`UPDATE Books SET roomid = ?, paymentid = ? , checkoutdate = ?, totalmoney = ?
 			WHERE id = ?`,[idroom, paymentid, checkoutdate, totalmoney, bookid]);
 
 			const temp2 = await pool.query(`SELECT * FROM Books WHERE id = ?`, [bookid]);
-			console.log("temp2 ===> ", temp2[0][0]); 
+			
 			var valueBookdetail ="";	
 			//phải có khách hàng	
 
@@ -405,7 +408,7 @@ const putBook = async (request, response) =>{
 
 				}
 				await pool.end();
-				console.log("Success ==== >")
+				
 				response.json({
 					message: "Success",
 					success: true
@@ -424,22 +427,21 @@ const putBook = async (request, response) =>{
 const putBookSuccess = async (request, response) =>{
 	console.log("putBookSuccess ===>>>>")
 	try {
-		console.log("===>putBookSuccessrequest ::: ", request.body)
-		const {bookid, roomid } = request.body;
-		const queryBook = `UPDATE Books SET statusBook = ? 
+		const {bookid, roomid, staffid } = request.body;
+		const queryBook = `UPDATE Books SET statusBook = ?,
+		staffid = ?
 		WHERE id = ?`;
 		const queryRoom = `UPDATE Rooms SET status = ?
 		WHERE id = ? `;
-
+		
 		const pool = mysql.createPool(configMysql)
-		await pool.query(queryBook, [statusBook.DATHANHTOAN, bookid]);
+		await pool.query(queryBook, [statusBook.DATHANHTOAN,staffid,  bookid]);
 		await pool.query(queryRoom, [statusRoom.SANSANG, roomid]);
 		await pool.end();
 		response.json({
 			message: "Success",
 			success: true
 		})
-
 		
 	} catch (error) {
 		console.log("Error ::: ", error.message);
@@ -455,7 +457,7 @@ const deleteBook = (request, response) =>{
 }
 
 const loadBookData = async (request, response) =>{
-	console.log(" loadBookData loadBookData loadBookData ==>")
+	
 	try {
 		console.log("loadBookData")
 
@@ -478,6 +480,7 @@ const loadBookData = async (request, response) =>{
 		const payments = await pool.query(queryPayment);
 		const customers = await pool.query(queryCustomer);
 		const roomservices = await pool.query(queryRoomService);
+		await pool.end();
 
 		response.json({
 			rooms: rooms[0],
@@ -501,6 +504,6 @@ module.exports = {
     getBookById, postBook, putBook, 
 	deleteBook, getAllBook, loadBookData, 
 	getBook, putBookSuccess, getBookByIdFromTo,
-	searchBook
+	searchBook, getBookByRole
 };
 

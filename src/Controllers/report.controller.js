@@ -1,7 +1,7 @@
-const { isDelete, statusRoom, statusBook } = require('../utils/const'); 
+const { isDelete, statusRoom, statusBook , rowInPage } = require('../utils/const'); 
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
-
+const {verifiedToken} = require('../Helpers/validateToken.helper')
 
 const queryRoomServiceDetailByBookid =
 	`SELECT bookid, id, roomserviceid 
@@ -15,7 +15,11 @@ const queryBookDetailByBookid =
 
 const getReport = async (request, response) => {
 		
-	response.render('Report', {title : 'Report Information'});
+	response.render('Report', {title : 'Reports', role:'admin'});
+}
+const getReportByStaff = async (request, response) => {
+		
+	response.render('Report', {title : 'Reports', layout:'layoutstaff'});
 }
 const searchReport = async (request, response) =>{
 	console.log("getAllBook")
@@ -53,7 +57,8 @@ const searchReport = async (request, response) =>{
 			response.json({
 				book: books,
 				totalmoney: totalmoney,
-				success: true
+				success: true, 
+				rowInPage: rowInPage
 			});
 			
 		
@@ -95,7 +100,8 @@ const getBookByIdFromTo = async (request, response) =>{
 			await pool.end();			
 			response.json({
 				book: books,
-				success: true
+				success: true, 
+				rowInPage: rowInPage
 			});
 			
 		
@@ -111,6 +117,7 @@ const getBookByIdFromTo = async (request, response) =>{
 module.exports = {
     getReport,
 	searchReport,
-	getBookByIdFromTo
+	getBookByIdFromTo,
+	getReportByStaff
 };
 

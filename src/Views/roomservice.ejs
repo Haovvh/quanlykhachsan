@@ -1,7 +1,5 @@
 <div class="container">
-    <h1 class="mt-4 mb-4 text-center text-primary"><b><%= title %></b></h1>
-
-    <span id="message"></span>
+        <span id="message"></span>
     <div class="card">
         <div class="card-header">
             <div class="row">
@@ -28,6 +26,9 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+                <div class="card-text pages row justify-content-center"  id="pages">
+            
+                </div>
             </div>
         </div>
     </div>
@@ -43,13 +44,13 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
+                    <div class="mb-3 input-group input-group-outline">
                         <label class="form-label">Tên dịch vụ</label>
                         <input type="text" name="roomservicename" id="roomservicename" class="form-control roomservicename" required />
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3 input-group input-group-outline">
                         <label class="form-label">Đơn giá (VND)</label>
-                        <input type="number" name="price" id="price" class="form-control price" required/>
+                        <input type="number" name="price" id="price" class="form-control  price" required/>
                     </div> 
                     
                 </div>
@@ -66,8 +67,115 @@
 
 
 <script>
+    var rowInPage = 10;
+    var lastPage = 1;
+    var pages = 1;
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
     var indexMode = "GET";
+    const user = JSON.parse(localStorage.getItem('user'));
+    var token = "";
+    if (user && user.accessToken) {
+        
+        token = `Bearer ${user.accessToken}`
+    }
+
+    const displaypages = (pages, current, lastPage) =>{
+        var firstPage = 1;
+        var bodyPages = ``;
+        if(pages > 0) { 
+            bodyPages += `
+            <div class="justify-content-center">
+            <nav class="mx-auto justify-content-center">
+            <ul class="pagination justify-content-center" style="margin-top: 2rem;">`;
+            if(current === 1) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>                
+                </li>`;
+            } else { 
+                bodyPages += `
+                <li class="page-item">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>
+                </li>`
+            } 
+            var i = (Number(current) > 3 ? Number(current) - 2 : 1) 
+  
+            if(i !== 1) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link" >...</button>
+                </li>`
+            } 
+            for(; i <= (Number(current) + 2) && i <= pages; i++) { 
+            
+                if(i == current) { 
+                    bodyPages += `
+                    <li class="page-item active">
+                        <button class="page-link pagesindex" id="pagesindex" data-id="`+i+`">${i}</button>                    
+                    </li>`;
+                } else { 
+                    bodyPages += `
+                    <li class="page-item">
+                        <button class="page-link pagesindex" id="pagesindex" data-id="`+i+`">${i}</button>
+                    </li>`
+                } 
+                if (i == Number(current) + 2 && i < pages) { 
+                    bodyPages += `
+                    <li class="page-item disabled">
+                        <button class="page-link" >...</button>
+                    </li>`
+                } 
+            }
+        
+            if(current === pages) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Last</button>                
+                </li>`
+            } else { 
+                bodyPages += `
+                <li class="page-item">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Last</button>                
+                </li>`
+            }
+            bodyPages += `
+                </ul>
+            </nav>
+            </div>`
+        } 
+       
+        document.querySelector('#pages').innerHTML = bodyPages;
+    }
+    
+    const displayRoom = (rowInPage, _stt, datas) => {
+        var html =``;  
+        for(var count = 0; count < rowInPage; count++) {
+                let data = datas[count];
+                _stt++;
+                let price = (parseInt(data.price)).toLocaleString();
+                            html += `
+                            <tr>
+                                <td>`+ _stt +`</td>
+                                <td>`+data.roomservicename+`</td>
+                                <td>`+price+`</td>
+                                <td>
+                                    <button type="button" class="btn btn-warning btn-sm edit" data-id="`+data.id+`">
+                                        Edit
+                                    </button>
+                                    &nbsp;
+                                    <button type="button" class="btn btn-danger btn-sm delete" data-id="`+data.id+`">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                            `;  
+                             
+            }                    
+          
+        document.querySelector('#roomservice_data tbody').innerHTML = html;
+                 
+    }
+   
 
     $(document).ready( function(){
     
@@ -78,37 +186,38 @@
             console.log("Load_data");
             $.ajax({
                 url: '/roomservice/all',
+                headers: {
+                    'Authorization':token
+                },
                 method: viewMode[0],
                 dataType : "JSON",
                 success:function( data)
-                {                    
-                    var html = ''; 
-
+                {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
+                    console.log(data)
+                    if (data.success) {
+                        rowInPage = data.rowInPage
+                    }
                     if(data.data.length > 0) {
-                        for(var count = 0; count < data.data.length; count++)
-                        {
-                            let roomservice = data.data[count];
-                            let _stt = count+1;
-                            let price = (parseInt(roomservice.price)).toLocaleString();
-                            html += `
-                            <tr>
-                                <td>`+ _stt +`</td>
-                                <td>`+roomservice.roomservicename+`</td>
-                                <td>`+price+`</td>
-                                <td>
-                                    <button type="button" class="btn btn-warning btn-sm edit" data-id="`+roomservice.id+`">
-                                        Edit
-                                    </button>
-                                    &nbsp;
-                                    <button type="button" class="btn btn-danger btn-sm delete" data-id="`+roomservice.id+`">
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                            `;
+                        pages = Math.ceil(data.data.length/rowInPage)
+                        const current = 1;
+                        lastPage = Math.ceil(data.data.length/rowInPage)
+                        const _stt = 0;
+                        var row = data.data.length;
+                        if(row > rowInPage) {
+                            row = rowInPage
+                        } else {
+                            row = data.data.length
                         }
+                        console.log(pages, current, lastPage, row, _stt, data.data)
+                        displaypages(pages, current, lastPage);
+                        displayRoom(row, _stt, data.data)
+                        
                     }  
-                    document.querySelector('#roomservice_data tbody').innerHTML = html;       
+                          
                     indexMode = viewMode[1];         
                 }
             });
@@ -138,6 +247,9 @@
             $.ajax({
                 url:'/roomservice',
                 method: indexMode,
+                headers: {
+                    'Authorization':token
+                },
                 data:$('#roomServiceForm').serialize(),
                 dataType:"JSON",
                 beforeSend:function(){
@@ -145,6 +257,10 @@
                 },
                 success:function(data)
                 { 
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     if (data.success) {
                         $('#actionButton').attr('disabled', false);
 
@@ -176,9 +292,16 @@
             $.ajax({
                 url:`/roomservice/${id}`,
                 method: viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
                 dataType:"JSON",
                 success:function(data)
                 {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     if(data.success) {
                         $('#dynamicModalTitle').text('Edit Data');
     
@@ -200,6 +323,72 @@
                 }
             });    
         });
+
+        $(document).on('click', '.pagesindex', function(){
+            var id = $(this).data('id');
+            id = parseInt(id);
+            $.ajax({
+                url: `/roomservice/page/${id-1}0/${rowInPage}`,
+                method: viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
+                dataType : "JSON",
+                success:  function(data)
+                {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
+                    console.log(data);
+                    let _stt = id-1 + "" + 0;
+                    _stt = parseInt(_stt)
+                    
+                    displaypages(pages, id, lastPage);
+                    const row = parseInt(data.data.length);
+                    displayRoom(row, _stt, data.data)
+                }
+            })
+        });
+        
+
+        $(document).on('click', '.search', function(){
+            let search = document.getElementById('search').value;
+            $.ajax({
+                url: `/roomservice/search`,
+                method: viewMode[1],
+                headers: {
+                    'Authorization':token
+                },
+                data: {search: search},
+                dataType : "JSON",
+                success:  function( data)
+                {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
+                    console.log(data)
+                    if(data.data && data.data.length > 0) {
+                        pages = Math.ceil(data.data.length/rowInPage)
+                        const current = 1;
+                        lastPage = Math.ceil(data.data.length/rowInPage)
+                        const _stt = 0;
+                        var row = 0;
+                        if(data.data.length < rowInPage){
+                            row = data.data.length;
+                        } else {
+                            row = rowInPage;
+                        }
+                        displaypages(pages, current, lastPage);
+                        displayRoom(row, _stt, data.data)
+                    } else {
+                        alert("Dữ liệu tìm kiếm không phù hợp")
+                    }
+                }
+            })
+        });
+    
     
         $(document).on('click', '.delete', function(){
     
@@ -210,10 +399,17 @@
                 $.ajax({
                     url:'/roomservice',
                     method: viewMode[3],
+                    headers: {
+                    'Authorization':token
+                    },
                     data:{ id:id},
                     dataType:"JSON",
                     success:function(data)
                     {
+                        if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                         if(data.success){
                             document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
                             load_data();

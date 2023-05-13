@@ -6,17 +6,21 @@ const {
     getCustomerTypeById,
     postCustomerType,
     putCustomerTypeById,
-    deleteCustomerTypeById
+    deleteCustomerTypeById,
+    searchCustomerType,
+    getCustomerTypeByIdFromTo
 } = require('../Controllers/customertype.controller');
-
+const {validateToken} = require('../Helpers/validateToken.helper');
 
 const router = Router();
 
     router.get('/', getCustomerType);
-    router.get('/all', getAllCustomerType);
-    router.get('/:id', getCustomerTypeById);
-    router.post('/', postCustomerType);
-    router.put('/', putCustomerTypeById);
-    router.delete('/', deleteCustomerTypeById);
+    router.get('/all', validateToken,getAllCustomerType);
+    router.get('/:id', validateToken,getCustomerTypeById);
+    router.get('/page/:id/:rowinpage', validateToken,getCustomerTypeByIdFromTo);
+    router.post('/',validateToken, postCustomerType);
+    router.post('/search',validateToken, searchCustomerType);
+    router.put('/',validateToken, putCustomerTypeById);
+    router.delete('/',validateToken, deleteCustomerTypeById);
     
 module.exports = router;

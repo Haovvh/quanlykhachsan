@@ -1,16 +1,16 @@
 
-const database = require('../config/mysql');
-const {isDelete, statusBook} = require('../utils/const');
+const {isDelete, statusBook , rowInPage} = require('../utils/const');
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
+const {verifiedToken} = require('../Helpers/validateToken.helper')
 
 const getRoom = async (request, response) => {
     console.log("getRoom")
-    response.render('Room', {title : 'Room Information'});
+    response.render('Room', {title : 'Rooms', role:'admin'});
 }
 
 const getRoomByIdFromTo = async (request, response) =>{
-	console.log("getRoomByIdFromTo")
+
 	try {
 		const {id, rowinpage} = request.params;
 		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
@@ -138,9 +138,7 @@ const getRoomById = async (request, response) => {
 		const pool = mysql.createPool(configMysql);
 		const room = await pool.query(query);
 		var roomIsUse = await pool.query(queryRoomIsUse,[isDelete.false, isDelete.false, statusBook.CHUATHANHTOAN, id]);
-		console.log("room is use :::", roomIsUse[0][0])
 		
-		console.log("ROOM === > ", room[0][0])
 		response.json({
 			data: room[0][0],
 			roomisuse: roomIsUse[0][0],
@@ -160,17 +158,23 @@ const searchRoom = async (request, response) => {
 	try {
 		const {search} = request.body;
 
-		var query = `SELECT main.*, rot.price, rot.roomtypename, rot.maxcustomer 
+		var query = `SELECT main.*, rot.price, rot.roomtypename, 
+		rot.maxcustomer, sta.statusname
 		FROM Rooms main
 		LEFT JOIN RoomTypes rot on (rot.id = main.roomtype)
-		WHERE main.id = '%${search}%' AND main.isDelete = ${isDelete.false} AND rot.isDelete = ${isDelete.false} `;
+		LEFT JOIN Statuss sta on (main.status = sta.id)
+		WHERE main.roomname LIKE '%${search}%' 
+		OR rot.roomtypename LIKE '%${search}%'
+		AND main.isDelete = ${isDelete.false} AND rot.isDelete = ${isDelete.false} `;
 		
 		const pool = mysql.createPool(configMysql);
 		const room = await pool.query(query);
 		await pool.end();
+		console.log(room[0])
 		response.json({
 			data: room[0],
-			success: true
+			success: true, 
+			rowInPage: rowInPage
 		});
 	} catch (error) {
 		console.log("Error ==>::: ", error.message);
@@ -207,8 +211,8 @@ const getAllRoom = async (request, response) => {
 		response.json({
 			data: rooms[0],
 			roomtype: roomtypes[0],
-			success: true,
-			
+			success: true, 
+			rowInPage: rowInPage
 		});
 			
 

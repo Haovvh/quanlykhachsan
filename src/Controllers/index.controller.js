@@ -13,9 +13,7 @@ const index = async (request, response) => {
 		const pool = mysql.createPool(configMysql);
 		const customers = await pool.query(query);
 		await pool.end();
-		response.render('Index', {products: customers[0],
-        pages: 10,
-    current:1})
+		response.render('Index', {title:'Index', role:'all'})
 
 	} catch (error) {
 		console.log("Error ::: ", error.message);

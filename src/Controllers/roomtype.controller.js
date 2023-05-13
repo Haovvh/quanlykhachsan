@@ -1,31 +1,32 @@
 
-const { isDelete } = require('../utils/const'); 
+const { isDelete , rowInPage } = require('../utils/const'); 
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
+const {validateTokenRoleAdmin} = require('../Helpers/validateTokenRoleAdmin.helper')
 
 const getRoomType = async (request, response) => {
-    console.log("getRoomType")
-    response.render('RoomType', {title : 'RoomType Information'});
+    
+    response.render('RoomType', {title : 'RoomTypes', layout: 'layout' });
 }
+
 
 const getAllRoomType = async (request, response) => {
     
-    try {
-        console.log("fetch");
-			var query = `SELECT id, roomtypename, price
-			FROM RoomTypes 
-			WHERE isDelete = ${isDelete.false}  ORDER BY id ASC`;  
-			const pool = mysql.createPool(configMysql);
-			roomtypes = await pool.query(query);
-			pool.end();
-			if(roomtypes[0].length > 0){
-				response.json({
-					data: roomtypes[0],
-					success: true   
-				})
-			} 			    
-
-	
+    try {		
+		var query = `SELECT *
+		FROM RoomTypes 
+		WHERE isDelete = ${isDelete.false}  ORDER BY id ASC`;  
+		const pool = mysql.createPool(configMysql);
+		roomtypes = await pool.query(query);
+		pool.end();
+		if(roomtypes[0].length > 0){
+			console.log("sucess")
+			response.json({
+				data: roomtypes[0],
+				success: true, 
+				rowInPage: rowInPage
+			})
+		}
     } catch (error) {
         console.log("Error :::", error.message);
 		response.json({
@@ -34,6 +35,7 @@ const getAllRoomType = async (request, response) => {
 		})
     }	
 }
+
 const getRoomTypeById = async (request, response) =>{
 	try {
 		var {id} = request.params;
@@ -69,7 +71,8 @@ const searchRoomType = async (request, response) =>{
 		pool.end();
 		response.json({
 			data:roomtype[0],
-			success: true
+			success: true, 
+			rowInPage: rowInPage
 		})
 	} catch (error) {
 		console.log("Error ", error.message)
@@ -79,14 +82,16 @@ const searchRoomType = async (request, response) =>{
 		})
 	}
 }
+
 const postRoomType = async (request, response) =>{
 	try {
-		console.log("Body ::: ",request.body);
-        const {roomtypename, price} = request.body;	
+		console.log("postRoomType")
+		validateTokenRoleAdmin();
+        const {roomtypename, price, maxcustomer} = request.body;	
 		var query = `
 		INSERT INTO RoomTypes 
-		(roomtypename, price) 
-		VALUES ('${roomtypename}', ${price}) `;
+		(roomtypename, price ,maxcustomer) 
+		VALUES (?, ?, ?) `;
 		const pool = mysql.createPool(configMysql);
 		const isExistRoomName = await pool.query(`SELECT * FROM RoomTypes WHERE roomtypename LIKE '%${roomtypename}%' `);
 		if(isExistRoomName[0][0]) {
@@ -97,7 +102,7 @@ const postRoomType = async (request, response) =>{
 			});
 			return;
 		}
-		await pool.query(query);
+		await pool.query(query,[roomtypename, price, maxcustomer]);
 		pool.end();
 		response.json({
 			message : 'Data Added',
@@ -112,19 +117,21 @@ const postRoomType = async (request, response) =>{
 		})
 	}
 }
+
 const putRoomTypeById = async(request, response) =>{
 	try {
-		console.log("Edit ::: ");
-		const {id, roomtypename, price} = request.body;	
+		validateTokenRoleAdmin();
+		const {id, roomtypename, price, maxcustomer} = request.body;	
 
 		var query = `
 		UPDATE RoomTypes
-		SET roomtypename = "${roomtypename}",
-		price = "${price}"
-		WHERE id = "${id}"
+		SET roomtypename = ?,
+		price = ?,
+		maxcustomer = ?
+		WHERE id = ?
 		`;
 		const pool = mysql.createPool(configMysql);
-		await pool.query(query);
+		await pool.query(query,[roomtypename, price, maxcustomer, id]);
 		await pool.end();
 		response.json({
 			message : 'Data Edited',
@@ -139,8 +146,10 @@ const putRoomTypeById = async(request, response) =>{
 		})
 	}
 }
+
 const deleteRoomTypeById = async(request, response) =>{
 	try {
+		validateTokenRoleAdmin();
 		console.log(request.body);
 		const {id} = request.body;
 		console.log("deleteRoomTypeById ==> ", id)
@@ -164,6 +173,38 @@ const deleteRoomTypeById = async(request, response) =>{
 		})
 	}
 }
+
+const getRoomTypeByIdFromTo = async (request, response) =>{
+	console.log("getRoomTypeByIdFromTo")
+	try {
+		const {id, rowinpage} = request.params;
+		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+			
+			var query = `SELECT *
+			FROM RoomTypes 
+			WHERE isDelete = ${isDelete.false}  
+			ORDER BY main.id ASC
+			LIMIT ? , ?`;
+			
+			const pool = mysql.createPool(configMysql);
+			const data = await pool.query(query, [parseInt(id), parseInt(rowinpage)]);
+			
+			await pool.end();			
+			response.json({
+				data: data[0],
+				success: true
+			});
+			
+		
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
 module.exports = {
     getRoomType,
     getAllRoomType,
@@ -171,5 +212,6 @@ module.exports = {
 	postRoomType,
 	putRoomTypeById,
 	deleteRoomTypeById,
-	searchRoomType
+	searchRoomType,
+	getRoomTypeByIdFromTo
 };

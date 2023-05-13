@@ -1,7 +1,5 @@
 <div class="container">
-    <h1 class="mt-4 mb-4 text-center text-primary"><b><%= title %></b></h1>
-
-    <span id="message"></span>
+    
     <div class="card">
         <div class="card-header">
             <div class="row">
@@ -51,16 +49,16 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
+                    <div class="mb-3 input-group input-group-outline">
                         <label class="form-label">Tên Phòng</label>
                         <input type="text" name="roomname" id="roomname" class="form-control roomname" required/>
                     </div>                    
-                    <div class="mb-3" >
+                    <div class="mb-3 input-group input-group-outline" >
                         <label class="form-label">Loại phòng</label>
                         <select name="roomtype" id="roomtype" class="form-select roomtype">
                         </select>
                     </div>                    
-                    <div class="mb-3">
+                    <div class="mb-3 input-group input-group-outline">
                         <label class="form-label">Mô tả</label>
                         <input type="text" name="description" id="description" class="form-control description" />
                     </div> 
@@ -78,12 +76,18 @@
 
 
 <script>
-    const rowInPage = 10;
+    var rowInPage = 10;
     var lastPage = 1;
     var page = 1;
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
     var indexMode = "GET";
     var _roomType =``;
+    const user = JSON.parse(localStorage.getItem('user'));
+    var token = "";
+    if (user && user.accessToken) {
+        
+        token = `Bearer ${user.accessToken}`
+    }
     const displaypages = (pages, current, lastPage) =>{
         var firstPage = 1;
         var bodyPages = ``;
@@ -208,12 +212,22 @@
             $.ajax({
                 url: '/room/all',
                 method:viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
                 dataType : "JSON",
                 success:function( data)
                 {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     _roomType =``;
                     var html = '';     
-                           
+                    
+                    if(data.success ) {
+                        rowInPage = data.rowInPage
+                    }
                     if(data.roomtype.length > 0) {
                         for(let index = 0 ; index <data.roomtype.length  ; index++) {
                             let _index = index + 1;
@@ -265,6 +279,9 @@
             $.ajax({
                 url:'/room',
                 method:indexMode,
+                headers: {
+                    'Authorization':token
+                },
                 data:$('#sample_form').serialize(),
                 dataType:"JSON",
                 beforeSend:function(){
@@ -273,6 +290,10 @@
                 success:function(data)
                 {
 
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     $('#actionButton').attr('disabled', false);
                     document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
                        
@@ -291,20 +312,24 @@
     
         $(document).on('click', '.edit', function(){
             
-            console.log("Editt ::::")
-            console.log("RoomType::::", _roomType);
             document.querySelector('#sample_form div div .roomtype').innerHTML = _roomType; 
 
             var id = $(this).data('id');
-            console.log("Id::::", id);
             
     
             $.ajax({
                 url:`/room/${id}`,
                 method: viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
                 dataType:"JSON",
                 success:function(data)
                 {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     if(data.success) {
                         $('#dynamicModalTitle').text('Edit Data');
     
@@ -338,10 +363,17 @@
                 $.ajax({
                     url:'/room',
                     method: viewMode[3],
+                    headers: {
+                    'Authorization':token
+                    },
                     data:{ id:id},
                     dataType:"JSON",
                     success:function(data)
                     {
+                        if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                         if(data.success) {
                             document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';                       
                             load_data();
@@ -357,6 +389,42 @@
             }
     
         });
+
+        $(document).on('click', '.search', function(){
+            let search = document.getElementById('search').value;
+            $.ajax({
+                url: `/room/search`,
+                method: viewMode[1],
+                data: {search: search},
+                dataType : "JSON",
+                success:  function( data)
+                {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
+                    console.log(data)
+                    if(data.data && data.data.length > 0) {
+                        pages = Math.ceil(data.data.length/rowInPage)
+                        const current = 1;
+                        lastPage = Math.ceil(data.data.length/rowInPage)
+                        const _stt = 0;
+                        var row = 0;
+                        if(data.data.length < rowInPage){
+                            row = data.data.length;
+                        } else {
+                            row = rowInPage;
+                        }
+                        displaypages(pages, current, lastPage);
+                        displayRoom(row, _stt, data.data)
+                    } else {
+                        alert("Dữ liệu tìm kiếm không phù hợp")
+                    }
+                }
+            })
+        });
+    
+
         $(document).on('click', '.pagesindex', function(){
             var id = $(this).data('id');
             id = parseInt(id);
@@ -366,6 +434,10 @@
                 dataType : "JSON",
                 success:  function( data)
                 {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     let _stt = id-1 + "" + 0;
                     _stt = parseInt(_stt)
                     console.log(data);

@@ -12,9 +12,11 @@ const statusBook = {
     CHUATHANHTOAN: 'CHUATHANHTOAN',
     DATHANHTOAN: 'DATHANHTOAN'
 }
+const rowInPage = 10;
 
 module.exports = {
     isDelete,
     statusRoom,
-    statusBook
+    statusBook, 
+    rowInPage
 }

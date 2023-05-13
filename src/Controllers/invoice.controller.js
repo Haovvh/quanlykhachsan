@@ -1,10 +1,13 @@
-const getInvoice = async (request, response) => {
+
+
+const getAllInvoice = async (request, response) => {
     console.log("getInvoice")
-    response.render('Invoice', {title : 'Invoice Information'});
-}
+    response.render('Invoice', {title : 'Invoices', role:'admin'});}
+
 
 module.exports = {
-    getInvoice,
+    
+    getAllInvoice
     
 };
 

@@ -2,21 +2,26 @@
 const { isDelete } = require('../utils/const'); 
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
+const bcrypt = require('bcrypt');
+const { generateTokens } = require('../Helpers/generateTokens.helper');
 
 const getlogin = async (request, response) => {
-    console.log("getlogin")
-    response.render('Login', {title : 'Login'});
+    response.render('login');
 }
 
 
 const login = async (request, response) =>{
 	try {
-		console.log("Body ::: ",request.body);
         const {username, password} = request.body;	
 		
 		const pool = mysql.createPool(configMysql);
-		const isExistUserName = await pool.query(`SELECT * FROM Users WHERE username = ? LIMIT 1`,[username]);
-		if(isExistUserName[0].length) {
+		const isExistUserName = await pool.query(`SELECT main.*, 
+		rol.rolename AS role 
+		FROM admin main 
+		LEFT JOIN roles rol ON (main.roletype = rol.id)
+		WHERE username = ? LIMIT 1`,[username]);
+		
+		if(!isExistUserName[0][0]) {
 			await pool.end();
 			response.json({
 				message : "Username is Exits",
@@ -24,9 +29,8 @@ const login = async (request, response) =>{
 			});
 			return;
 		}
-		await pool.end();
 		const validatedPassword =  bcrypt.compareSync( password, isExistUserName[0][0].password );
-
+		
 		if(!validatedPassword) {
 			await pool.end();
 			response.json({
@@ -40,7 +44,10 @@ const login = async (request, response) =>{
 		response.json({
 			message : 'Login success',
 			accessToken: token,
-			success: true
+			success: true,
+			role: isExistUserName[0][0].role,
+			username: username,
+			id: isExistUserName[0][0].id
 		});
 		
 	} catch (error) {
@@ -51,22 +58,20 @@ const login = async (request, response) =>{
 		})
 	}
 }
-const register = async(request, response) =>{
+const registerStaff = async(request, response) =>{
 	try {
-		console.log("Edit ::: ");
-		const {id, roomtypename, price} = request.body;	
-
+		const { username, password} = request.body;	
+		const salt = bcrypt.genSaltSync();
+        const pass = bcrypt.hashSync( password, salt );
+		
 		var query = `
-		UPDATE RoomTypes
-		SET roomtypename = "${roomtypename}",
-		price = "${price}"
-		WHERE id = "${id}"
-		`;
+		INSERT INTO Staff (username, password)
+		VALUE (?, ? ) `;
 		const pool = mysql.createPool(configMysql);
-		await pool.query(query);
+		await pool.query(query,[username, pass]);
 		await pool.end();
 		response.json({
-			message : 'Data Edited',
+			message : 'Success',
 			success: true
 		});
 		
@@ -82,6 +87,6 @@ const register = async(request, response) =>{
 
 module.exports = {
     login,
-    register,
+    registerStaff,
     getlogin
 };

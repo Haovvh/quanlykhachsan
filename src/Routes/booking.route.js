@@ -1,17 +1,14 @@
 const { Router } = require('express');
-const { getAllBook, getBook, loadBookData, getBookById, postBook, putBook, deleteBook, putBookSuccess } = require('../Controllers/booking.controller');
-
+const { getAllBook, getBook,  getBookById} = require('../Controllers/booking.controller');
+const {validateToken} = require('../Helpers/validateToken.helper');
 const router = Router();
 
     router.get('/', getBook);
-    router.get('/all', getAllBook);
+    router.get('/all',validateToken, getAllBook);
     
-    router.get('/load', loadBookData);
-    router.get('/:id', getBookById);
-    router.post('/', postBook);
-    router.put('/', putBook);
-    router.put('/success', putBookSuccess);
-    router.delete('/', deleteBook)
+
+    router.get('/:id',validateToken, getBookById);
+    
 
 module.exports = router;
 

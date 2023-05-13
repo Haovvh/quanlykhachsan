@@ -1,12 +1,45 @@
-const database = require('../config/mysql');
-const { isDelete } = require('../utils/const'); 
+const { isDelete, rowInPage } = require('../utils/const'); 
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
+const {verifiedToken} = require('../Helpers/validateToken.helper')
 
 const getGender = async (request, res) => {
     console.log("getGender")
-    res.render('Gender', {title : 'Gender Information'});
+    res.render('Gender', {title : 'Genders',role:'admin'});
 }
+
+const getGenderByIdFromTo = async (request, response) =>{
+	console.log("getGenderByIdFromTo")
+	try {
+		const {id, rowinpage} = request.params;
+		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+			
+			var query = `SELECT *
+			FROM Genders 
+			WHERE isDelete = ${isDelete.false}  
+			ORDER BY main.id ASC
+			LIMIT ? , ?`;
+			
+			const pool = mysql.createPool(configMysql);
+			const data = await pool.query(query, [parseInt(id), parseInt(rowinpage)]);
+			
+			await pool.end();			
+			response.json({
+				data: data[0],
+				success: true
+			});
+			
+		
+	} catch (error) {
+		console.log("Error ::: ", error.message);
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
+
 const getGenderById = async (request, response) => {
     console.log("getGenderById")
     try {
@@ -37,18 +70,21 @@ const searchGender = async (request, response) => {
     try {
 		var {search} = request.body;
 		//console.log(request.header())
+		console.log("searchGender")
 		var query = `SELECT *
 		FROM Genders 
-		WHERE gendername LIKE '%${id}%' AND isDelete = ${isDelete.false}`;
+		WHERE gendername LIKE '%${search}%' AND isDelete = ${isDelete.false}`;
 		const pool = mysql.createPool(configMysql);
 		const gender = await pool.query(query);
+		await pool.end();
 		response.json({
 			data: gender[0], 
-			success: true
+			success: true, 
+			rowInPage: rowInPage
 		});
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+		console.log("==>Error ::: ", error.message);
 		response.json({
 			message: error.message,
 			success: false
@@ -151,7 +187,8 @@ const getAllGender = async (request, response) => {
 		await pool.end();
 		response.json({
 			data: genders[0],
-			success: true                    
+			success: true, 
+			rowInPage: rowInPage                    
 		});	
 			
 	
@@ -170,5 +207,6 @@ module.exports = {
 	postGender,
 	putGenderById,
 	deleteGenderById,
-	searchGender
+	searchGender,
+	getGenderByIdFromTo
 };

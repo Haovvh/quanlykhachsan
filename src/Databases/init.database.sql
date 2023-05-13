@@ -8,20 +8,31 @@ CREATE TABLE QLKhachSan.Roles (
         ,UNIQUE(rolename)
         );
 
-CREATE TABLE QLKhachSan.Users (
+        CREATE TABLE QLKhachSan.Branchs (
+        id			            BIGINT PRIMARY KEY AUTO_INCREMENT
+        ,branchname                   VARCHAR(50) NOT NULL
+        ,isDelete				BOOL DEFAULT FALSE
+        );
+
+        CREATE TABLE QLKhachSan.admin (
 		id			            BIGINT PRIMARY KEY AUTO_INCREMENT
-		,email					VARCHAR(128)
-		,phone					VARCHAR(11) NOT NULL
+		,username					VARCHAR(128)
 		,password				VARCHAR(100) NOT NULL
-		,fullname				VARCHAR(128) NOT NULL
-		,dateofbirth			VARCHAR(10) NOT NULL
-		,gender					BIGINT DEFAULT 1
 		,roletype				BIGINT 
         ,status                 BIGINT 
-        ,isDelete				BOOL DEFAULT FALSE
-		,UNIQUE (phone)
-        ,UNIQUE (email) 
+        ,isDelete				BOOL DEFAULT FALSE 
         );	
+
+CREATE TABLE QLKhachSan.Staffs (
+		id			            BIGINT PRIMARY KEY AUTO_INCREMENT
+		,username					VARCHAR(128)
+		,password				VARCHAR(100) NOT NULL
+		,roletype				BIGINT
+        ,branchtype               BIGINT DEFAULT 1
+        ,status                 BIGINT 
+        ,isDelete				BOOL DEFAULT FALSE 
+        );	
+
         CREATE TABLE QLKhachSan.Customers (
 		id			            BIGINT PRIMARY KEY AUTO_INCREMENT
 		,phone					VARCHAR(11) NOT NULL

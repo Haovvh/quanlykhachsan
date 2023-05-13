@@ -1,8 +1,7 @@
 
 <!-- Bookdetail -->
 <div class="container bookdetailform" id="bookdetailform" >
-    <h1 class="mt-4 mb-4 text-center text-primary"><b>Phiếu thuê phòng chi tiết</b>
-    </h1>
+    
     <div class="card">
         <form id="bookformdetail" class="bookformdetail">
             <div class="card-header"> 
@@ -67,6 +66,12 @@
     var roomServiceDetails = [];
     var payments = ``;
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
+    const user = JSON.parse(localStorage.getItem('user'));
+    var token = "";
+    if (user && user.accessToken) {
+        
+        token = `Bearer ${user.accessToken}`
+    }
     
     const headerCustomer = `
                 <div class="col">
@@ -98,7 +103,7 @@
                                 <tr>
                                     <th scope="col">Tên Phòng</th>                                    
                                     <th scope="col">Ngày Thuê/ Trả</th>                                 
-                                    <th scope="col">Tổng ngày thuê (>8 giờ = 1 ngày)</th>
+                                    <th scope="col">Số Ngày</th>
                                     <th scope="col">Đơn giá/ngày</th>
                                     <th scope="col">Đơn giá/giờ</th>
                                     <th scope="col">Tổng tiền</th>
@@ -278,12 +283,26 @@
         displayCustomerDetail();        
     }  
     
-    const loadBookByBookId = async (bookid ) => {
+    const url = window.location.href;
+        
+    const index = url.split('/');
+    let indexInvoice = index[index.length-1]
+    $(document).ready(  function(){
+        
+        loadBookByBookId(indexInvoice)
+        function loadBookByBookId  (bookid )  {
             $.ajax({
                 url: `/book/${bookid}` ,
                 method: viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
                 dataType : "JSON",
-                success: await function( data){
+                success:  function( data){
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     console.log(data)
                     if(data.success) {                  
                         book = data.book;
@@ -343,12 +362,6 @@
             })    
         }    
 
-    $(document).ready( async function(){
-
-        const url = window.location.href;
-        const index = url.split('/');
-        let indexInvoice = index[index.length-1]
-        await loadBookByBookId(indexInvoice)
 });
     
     </script>

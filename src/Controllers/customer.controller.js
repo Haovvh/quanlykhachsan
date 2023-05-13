@@ -1,20 +1,26 @@
 const database = require('../config/mysql');
-const { isDelete } = require('../utils/const'); 
+const { isDelete, rowInPage } = require('../utils/const'); 
 const {formatDate} = require('../utils/date');
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
+const {verifiedToken} = require('../Helpers/validateToken.helper')
 
 const getCustomer = async (request, res) => {
     console.log("getcustomer")
-    res.render('customer', {title : 'Customer Information'});
+    res.render('customer', {title : 'Customers', layout:'layout'});
 }
+const getCustomerByStaff = async (request, res) => {
+    console.log("getcustomer")
+    res.render('customer', {title : 'Customers', layout:'layoutstaff'});
+}
+
 
 const getCustomerById = async (request, response) => {
     console.log("getCustomerById")
     try {
-		console.log("fetchSingle")
+		
 		const {id} = request.params;
-		console.log(request.params)
+		
 
 		var query = `SELECT main.id, main.fullname, main.citizenIdentityCard,
 		main.address, main.phone, main.dateofbirth, main.gender, main.customertype, cus.customertypename
@@ -58,7 +64,8 @@ const searchCustomer = async (request, response) => {
 		console.log(customer[0])
 		response.json({
 			data: customer[0],
-			success: true
+			success: true, 
+			rowInPage: rowInPage
 		});
 
 	} catch (error) {
@@ -224,7 +231,8 @@ const getAllCustomer = async (request, response) => {
 				data: customers[0],
 				customerType: customertypes[0],
 				genderType: genders[0],
-				success: true
+				success: true, 
+				rowInPage: rowInPage
 			});
         
     } catch (error) {
@@ -245,6 +253,7 @@ module.exports = {
 	putCustomerById,
 	deleteCustomerById,
 	getCustomerByIdFromTo,
-	searchCustomer
+	searchCustomer,
+	getCustomerByStaff
 };
 

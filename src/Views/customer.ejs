@@ -1,8 +1,7 @@
-  <div class="container">
-    <h1 class="mt-4 mb-4 text-center text-primary"><b><%= title %></b></h1>
-
+  <div class="row">
+    
     <span id="message"></span>
-    <div class="card">
+    <div class="card row">
         <div class="card-header">
             <div class="row">
                 <div class="col-3">
@@ -23,14 +22,14 @@
                 <table class="table table-striped table-bordered" id="customer_data">
                     <thead>
                         <tr>
-                            <th scope="col">STT</th>
+                            <th scope="col" >STT</th>
                             <th scope="col">Tên</th>
                             <th scope="col">SDT</th>
                             <th scope="col">Địa chỉ</th>
                             <th scope="col">CCCD</th>
                             <th scope="col">Loại khách</th>
-                            <th scope="col">Ngày sinh</th>
-                            <th scope="col">Giới tính</th>
+                            <th scope="col" hidden>Ngày sinh</th>
+                            <th scope="col" >Giới tính</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -54,35 +53,35 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
+                    <div class="mb-3 input-group input-group-outline">
                         <label class="form-label">Tên</label>
                         <input type="text" name="fullname" id="fullname" class="form-control" required/>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3 input-group input-group-outline">
                         <label class="form-label">SDT</label>
                         <input type="text" name="phone" id="phone" class="form-control" required/>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3 input-group input-group-outline">
                         <label class="form-label">CCCD </label>
                         <input type="text" name="citizenIdentityCard" id="citizenIdentityCard" class="form-control" required/>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3 input-group input-group-outline">
                         <label class="form-label">Địa chỉ </label>
                         <input type="text" name="address" id="address" class="form-control" required/>
                     </div>
-                    <div class="mb-3" >
+                    <div class="mb-3 " >
                         <label class="form-label">Loại khách</label>
-                        <select name="customertype" id="customertype" class="form-control customertype">
+                        <select name="customertype" id="customertype" class="form-select customertype">
                         </select>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3 ">
                         <label class="form-label">Ngày sinh</label>
                         <input type="date" class="form-control"  id="dateofbirth" name="dateofbirth" placeholder="DateOfBirth" required>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3 ">
                         <label class="form-label">Giới tính</label>
-                        <select name="gender" id="gender" class="form-control gender">
+                        <select name="gender" id="gender" class="form-select gender">
                         </select>
                     </div>
                 </div>
@@ -99,9 +98,9 @@
 
 
 <script>
-    const rowInPage = 10;
+    var rowInPage = 10;
     var lastPage = 1;
-    var page = 1;
+    var pages = 1;
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
     var indexMode = "GET";
 
@@ -110,6 +109,13 @@
     `;
     var _genderType = `
     `;
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    var token = "";
+    if (user && user.accessToken) {
+        
+        token = `Bearer ${user.accessToken}`
+    }
     const displaypages = (pages, current, lastPage) =>{
         var firstPage = 1;
         var bodyPages = ``;
@@ -185,14 +191,14 @@
                 _stt++;
                 html += `
                             <tr>
-                                <td>`+ _stt +`</td>
+                                <td >`+ _stt +`</td>
                                 <td>`+customerRow.fullname+`</td>
                                 <td>`+customerRow.phone+`</td>
                                 <td>`+customerRow.address+`</td>
                                 <td>`+customerRow.citizenIdentityCard+`</td>
                                 <td>`+customerRow.customertypename+`</td>
-                                <td>`+customerRow.dateofbirth+`</td>
-                                <td>`+customerRow.gendername+`</td>
+                                <td hidden>`+customerRow.dateofbirth+`</td>
+                                <td >`+customerRow.gendername+`</td>
                                 
                                 <td>
                                     <button type="button" class="btn btn-warning btn-sm edit" data-id="`+customerRow.id+`">
@@ -222,14 +228,21 @@
             $.ajax({
                 url: '/customer/all',
                 method: viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
                 data:{action:'fetch'},
                 dataType : "JSON",
                 success:function( data)
                 {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     _customerType =``;
                     _genderType = ``;   
                            
-                    if(data.customerType.length > 0) {
+                    if(data.customerType.length > 0 ) {
                         console.log(data.customerType);
                         for(let index = 0 ; index <data.customerType.length  ; index++) {
                             let _index = index + 1;
@@ -253,7 +266,8 @@
                         `;                        
                     }
     
-                    if(data.data && data.data.length > 0) {
+                    if(data.data && data.data.length > 0 && data.success) {
+                        rowInPage = data.rowInPage
                         pages = Math.ceil(data.data.length/rowInPage)
                         const current = 1;
                         lastPage = Math.ceil(data.data.length/rowInPage)
@@ -297,14 +311,16 @@
     
         });
     
-        $('#sample_form').on('submit', function(event){
-            console.log("indexmode === > ", indexMode)
+        $('#sample_form').on('submit', function(event){            
     
             event.preventDefault();
     
             $.ajax({
                 url:'/customer',
                 method: indexMode,
+                headers: {
+                    'Authorization':token
+                },
                 data:$('#sample_form').serialize(),
                 dataType:"JSON",
                 beforeSend:function(){
@@ -312,10 +328,13 @@
                 },
                 success:function(data)
                 {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     $('#actionButton').attr('disabled', false);
                     document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
     
-                    //$('#message').html('<div class="alert alert-success">'+data.message+'</div>');
     
                     $('#actionModal').modal('hide');
     
@@ -342,9 +361,16 @@
             $.ajax({
                 url:`/customer/${id}`,
                 method: viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
                 dataType:"JSON",
                 success:function(data)
                 {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     const temp = data.data;
                     if(data.success) {
                         $('#dynamicModalTitle').text('Edit Data');
@@ -386,6 +412,10 @@
                     dataType:"JSON",
                     success:function(data)
                     {
+                        if(data && data.success === false && data.statusCode === 400) {
+                            alert("Vui lòng đăng nhập lại")
+                            window.location.assign('/login')
+                        }
                         if(data.success) {
                             document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
 
@@ -408,9 +438,16 @@
             $.ajax({
                 url: `/customer/page/${id-1}0/${rowInPage}`,
                 method: viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
                 dataType : "JSON",
                 success:  function( data)
                 {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     let _stt = id-1 + "" + 0;
                     _stt = parseInt(_stt)
                     console.log(data);
@@ -420,15 +457,23 @@
                 }
             })
         });
+        
         $(document).on('click', '.search', function(){
             let search = document.getElementById('search').value;
             $.ajax({
                 url: `/customer/search`,
                 method: viewMode[1],
+                headers: {
+                    'Authorization':token
+                },
                 data: {search: search},
                 dataType : "JSON",
                 success:  function( data)
                 {
+                    if(data && data.success === false && data.statusCode === 400) {
+                        alert("Vui lòng đăng nhập lại")
+                        window.location.assign('/login')
+                    }
                     console.log(data)
                     if(data.data && data.data.length > 0) {
                         pages = Math.ceil(data.data.length/rowInPage)
@@ -443,6 +488,8 @@
                         }
                         displaypages(pages, current, lastPage);
                         displayRoom(row, _stt, data.data)
+                    } else {
+                        alert("Dữ liệu tìm kiếm không phù hợp")
                     }
                 }
             })

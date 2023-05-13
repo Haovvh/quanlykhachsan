@@ -9,22 +9,27 @@ const expressLayouts = require('express-ejs-layouts');
 const paginate = require("express-paginate");
 
 const PORT = process.env.PORT || 5000;
-const server = require('./utils/server')
-
-
 
 const app = express();
 //Middlewres
-app.use(express.json());
+
 app.use(cookieParser());
 
+app.use(express.json() );
+app.use(express.urlencoded({ extended: false }) );
+
 // Express Layouts  
+app.use('/admin', require('./Routes/login.admin.route'));
+app.use('/staff', require('./Routes/login.staff.route'));
 app.use(expressLayouts);
 //config viewengine
 configViewEngine(app);
 
+
 app.use(paginate.middleware(10, 50));
 
+app.use(express.json() );
+app.use(express.urlencoded({ extended: false }) );
 app.use(session({
     secret: 'secret',
     resave: true,
@@ -34,19 +39,13 @@ app.use(session({
     }
 }));
 
-app.use( express.json() );
-app.use( express.urlencoded({ extended: false }) );
-
-
-
-
 //Routes
 
 app.use('/', require('./Routes/index.route'));
 
-app.use('/login', require('./Routes/login.route'));
-
 app.use('/customer', require('./Routes/customer.route'));
+
+app.use('/customerstaff', require('./Routes/customerstaff.route'));
 
 app.use('/customertype', require('./Routes/customertype.route'));
 
@@ -58,17 +57,33 @@ app.use('/roomservice', require('./Routes/roomservice.route'));
 
 app.use('/book', require('./Routes/book.route'));
 
+app.use('/bookstaff', require('./Routes/bookstaff.route'));
+
 app.use('/booking', require('./Routes/booking.route'));
+
+app.use('/bookingstaff', require('./Routes/bookingstaff.route'));
 
 app.use('/gender', require('./Routes/gender.route'));
 
 app.use('/invoice', require('./Routes/invoice.route'));
 
+app.use('/invoicestaff', require('./Routes/invoicestaff.route'));
+
 app.use('/report', require('./Routes/report.route'));
 
+app.use('/reportstaff', require('./Routes/reportstaff.route'));
+
+app.use('/profile', require('./Routes/profile.route'));
+
+app.use('/profilestaff', require('./Routes/profilestaff.route'));
+
+app.use('/branch', require('./Routes/branch.route'));
+
+app.use('/staff', require('./Routes/staff.route'));
+//Staff
 
 
 app.listen(PORT , () => {
-    console.log(`SERVER RUNNING ${server}`);
+    console.log(`SERVER RUNNING http:localhost:${PORT}`);
 })
 
