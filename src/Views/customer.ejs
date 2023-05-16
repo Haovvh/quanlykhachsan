@@ -19,16 +19,15 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped table-bordered" id="customer_data">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th scope="col" >STT</th>
-                            <th scope="col">Tên</th>
-                            <th scope="col">SDT</th>
+                            <th scope="col">Tên</th>                            
                             <th scope="col">Địa chỉ</th>
                             <th scope="col">CCCD</th>
                             <th scope="col">Loại khách</th>
-                            <th scope="col" hidden>Ngày sinh</th>
+                            <th scope="col" >Ngày sinh</th>
                             <th scope="col" >Giới tính</th>
                             <th scope="col"></th>
                         </tr>
@@ -53,19 +52,15 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3 input-group input-group-outline">
+                    <div class="mb-3 ">
                         <label class="form-label">Tên</label>
                         <input type="text" name="fullname" id="fullname" class="form-control" required/>
-                    </div>
-                    <div class="mb-3 input-group input-group-outline">
-                        <label class="form-label">SDT</label>
-                        <input type="text" name="phone" id="phone" class="form-control" required/>
-                    </div>
-                    <div class="mb-3 input-group input-group-outline">
+                    </div>                    
+                    <div class="mb-3 ">
                         <label class="form-label">CCCD </label>
                         <input type="text" name="citizenIdentityCard" id="citizenIdentityCard" class="form-control" required/>
                     </div>
-                    <div class="mb-3 input-group input-group-outline">
+                    <div class="mb-3 ">
                         <label class="form-label">Địa chỉ </label>
                         <input type="text" name="address" id="address" class="form-control" required/>
                     </div>
@@ -182,30 +177,29 @@
         } 
         document.querySelector('#pages').innerHTML = bodyPages;
     }
-    const displayRoom = (rowInPage, _stt, customers) => {
+    const displayRoom = (rowInPage, _stt, datas) => {
         var html =``;
-        
+
        
         for(var count = 0; count < rowInPage; count++) {
-                let customerRow = customers[count];
+                let data = datas[count];
                 _stt++;
                 html += `
                             <tr>
                                 <td >`+ _stt +`</td>
-                                <td>`+customerRow.fullname+`</td>
-                                <td>`+customerRow.phone+`</td>
-                                <td>`+customerRow.address+`</td>
-                                <td>`+customerRow.citizenIdentityCard+`</td>
-                                <td>`+customerRow.customertypename+`</td>
-                                <td hidden>`+customerRow.dateofbirth+`</td>
-                                <td >`+customerRow.gendername+`</td>
+                                <td>`+data.fullname+`</td>                               
+                                <td>`+data.address+`</td>
+                                <td>`+data.citizenIdentityCard+`</td>
+                                <td>`+data.customertypename+`</td>
+                                <td >`+data.dateofbirth+`</td>
+                                <td >`+data.gendername+`</td>
                                 
                                 <td>
-                                    <button type="button" class="btn btn-warning btn-sm edit" data-id="`+customerRow.id+`">
+                                    <button type="button" class="btn btn-warning btn-sm edit" data-id="`+data.id+`">
                                         Edit
                                     </button>
                                 &nbsp;
-                                <button type="button" class="btn btn-danger btn-sm delete" data-id="`+customerRow.id+`">
+                                <button type="button" class="btn btn-danger btn-sm delete" data-id="`+data.id+`">
                                     Delete
                                     </button>
                             </td>
@@ -213,18 +207,22 @@
                     `;                
             }                    
           
-        document.querySelector('#customer_data tbody').innerHTML = html;
+        document.querySelector('#dataTable tbody').innerHTML = html;
                  
     }
    
 
     $(document).ready( function(){
     
+        if(user.username !== "admin") {            
+            window.location.assign('/staff/login')
+        }
+    
         load_data();
     
         function load_data()
         {            
-            console.log("Load_data");
+
             $.ajax({
                 url: '/customer/all',
                 method: viewMode[0],
@@ -235,15 +233,13 @@
                 dataType : "JSON",
                 success:function( data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
+                    
+                    
                     _customerType =``;
                     _genderType = ``;   
                            
                     if(data.customerType.length > 0 ) {
-                        console.log(data.customerType);
+  
                         for(let index = 0 ; index <data.customerType.length  ; index++) {
                             let _index = index + 1;
                             _customerType = `<option value="` + data.customerType[index].id+`">` 
@@ -255,7 +251,7 @@
                     }                    
 
                     if(data.genderType.length > 0) {
-                        console.log(data.genderType);
+    
                         for(let index = 0 ; index <data.genderType.length  ; index++) {
                             let _index = index + 1;
                             _genderType = `<option value="` + data.genderType[index].id+`">` 
@@ -272,9 +268,12 @@
                         const current = 1;
                         lastPage = Math.ceil(data.data.length/rowInPage)
                         const _stt = 0;
-
+                        let row = data.data.length;
+                        if(row > rowInPage) {
+                            row = rowInPage
+                        }
                         displaypages(pages, current, lastPage);
-                        displayRoom(rowInPage, _stt, data.data)
+                        displayRoom(row, _stt, data.data)
                     }   
                        
                     indexMode = viewMode[1]
@@ -283,7 +282,7 @@
         }
     
         $('#add_data').click(function(){
-            console.log("add_data")
+            
             document.querySelector('#sample_form div div .customertype').innerHTML = _customerType;  
             document.querySelector('#sample_form div div .gender').innerHTML = _genderType;  
 
@@ -328,10 +327,7 @@
                 },
                 success:function(data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
+                    
                     $('#actionButton').attr('disabled', false);
                     document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
     
@@ -349,8 +345,7 @@
         });
         
         $(document).on('click', '.edit', function(){
-            console.log("Editt ::::")
-            
+           
             
             document.querySelector('#sample_form div div .customertype').innerHTML = _customerType;  
             document.querySelector('#sample_form div div .gender').innerHTML = _genderType;  
@@ -367,10 +362,7 @@
                 dataType:"JSON",
                 success:function(data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
+                    
                     const temp = data.data;
                     if(data.success) {
                         $('#dynamicModalTitle').text('Edit Data');
@@ -380,10 +372,10 @@
                         $('#actionButton').text('Edit');
                 
                         $('#actionModal').modal('show');
-                        console.log("Data :::: ===>", data)
+       
                         indexMode = viewMode[2];
                         $('#fullname').val(temp.fullname);
-                        $('#phone').val(temp.phone);
+                       
                         $('#address').val(temp.address);
                         $('#citizenIdentityCard').val(temp.citizenIdentityCard);
                         $('#customertype').val(temp.customertype);
@@ -412,10 +404,7 @@
                     dataType:"JSON",
                     success:function(data)
                     {
-                        if(data && data.success === false && data.statusCode === 400) {
-                            alert("Vui lòng đăng nhập lại")
-                            window.location.assign('/login')
-                        }
+                        
                         if(data.success) {
                             document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
 
@@ -444,13 +433,10 @@
                 dataType : "JSON",
                 success:  function( data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
+                    
                     let _stt = id-1 + "" + 0;
                     _stt = parseInt(_stt)
-                    console.log(data);
+
                     displaypages(pages, id, lastPage);
                     const row = parseInt(data.customers.length);
                     displayRoom(row, _stt, data.customers)
@@ -470,11 +456,7 @@
                 dataType : "JSON",
                 success:  function( data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
-                    console.log(data)
+                   
                     if(data.data && data.data.length > 0) {
                         pages = Math.ceil(data.data.length/rowInPage)
                         const current = 1;

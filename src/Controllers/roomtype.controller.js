@@ -2,7 +2,7 @@
 const { isDelete , rowInPage } = require('../utils/const'); 
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
-const {validateTokenRoleAdmin} = require('../Helpers/validateTokenRoleAdmin.helper')
+
 
 const getRoomType = async (request, response) => {
     
@@ -15,12 +15,13 @@ const getAllRoomType = async (request, response) => {
     try {		
 		var query = `SELECT *
 		FROM RoomTypes 
-		WHERE isDelete = ${isDelete.false}  ORDER BY id ASC`;  
+		WHERE isDelete = ${isDelete.false}  
+		ORDER BY id ASC`;  
 		const pool = mysql.createPool(configMysql);
 		roomtypes = await pool.query(query);
 		pool.end();
 		if(roomtypes[0].length > 0){
-			console.log("sucess")
+
 			response.json({
 				data: roomtypes[0],
 				success: true, 
@@ -28,7 +29,7 @@ const getAllRoomType = async (request, response) => {
 			})
 		}
     } catch (error) {
-        console.log("Error :::", error.message);
+
 		response.json({
 			message: "Error", 
 			success :false
@@ -51,7 +52,7 @@ const getRoomTypeById = async (request, response) =>{
 			success: true
 		})
 	} catch (error) {
-		console.log("Error ", error.message)
+
 		response.json({
 			message:  "error",
 			success: false
@@ -62,12 +63,16 @@ const getRoomTypeById = async (request, response) =>{
 const searchRoomType = async (request, response) =>{
 	try {
 		const {search} = request.body
+		var searchWith = '';
+		if(search !== '') {
+			searchWith = `AND roomtypename LIKE '%${search}%' `;
+		}
 
 		var query = `SELECT *
 		FROM RoomTypes 
-		WHERE roomtypename LIKE '%${search}%' AND isDelete = ${isDelete.false} `;
+		WHERE  isDelete = ? ` + searchWith;
 		const pool = mysql.createPool(configMysql);
-		const roomtype = await pool.query(query);
+		const roomtype = await pool.query(query, [isDelete.false]);
 		pool.end();
 		response.json({
 			data:roomtype[0],
@@ -75,7 +80,7 @@ const searchRoomType = async (request, response) =>{
 			rowInPage: rowInPage
 		})
 	} catch (error) {
-		console.log("Error ", error.message)
+
 		response.json({
 			message:  "error",
 			success: false
@@ -85,8 +90,8 @@ const searchRoomType = async (request, response) =>{
 
 const postRoomType = async (request, response) =>{
 	try {
-		console.log("postRoomType")
-		validateTokenRoleAdmin();
+
+		
         const {roomtypename, price, maxcustomer} = request.body;	
 		var query = `
 		INSERT INTO RoomTypes 
@@ -110,7 +115,7 @@ const postRoomType = async (request, response) =>{
 		});
 		
 	} catch (error) {
-		console.log("Error ", error.message)
+
 		response.json({
 			message:  error,
 			success: false
@@ -120,7 +125,6 @@ const postRoomType = async (request, response) =>{
 
 const putRoomTypeById = async(request, response) =>{
 	try {
-		validateTokenRoleAdmin();
 		const {id, roomtypename, price, maxcustomer} = request.body;	
 
 		var query = `
@@ -139,7 +143,7 @@ const putRoomTypeById = async(request, response) =>{
 		});
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+	
 		response.json({
 			message: error.message,
 			success: false
@@ -149,10 +153,8 @@ const putRoomTypeById = async(request, response) =>{
 
 const deleteRoomTypeById = async(request, response) =>{
 	try {
-		validateTokenRoleAdmin();
-		console.log(request.body);
+
 		const {id} = request.body;
-		console.log("deleteRoomTypeById ==> ", id)
         var query = `
 		UPDATE RoomTypes
 		SET isDelete = ${isDelete.true}
@@ -166,7 +168,7 @@ const deleteRoomTypeById = async(request, response) =>{
 			success: true
 		});
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -175,10 +177,10 @@ const deleteRoomTypeById = async(request, response) =>{
 }
 
 const getRoomTypeByIdFromTo = async (request, response) =>{
-	console.log("getRoomTypeByIdFromTo")
+
 	try {
 		const {id, rowinpage} = request.params;
-		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+
 			
 			var query = `SELECT *
 			FROM RoomTypes 
@@ -197,7 +199,7 @@ const getRoomTypeByIdFromTo = async (request, response) =>{
 			
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false

@@ -6,38 +6,34 @@ const mysql = require('mysql2/promise');
 const {verifiedToken} = require('../Helpers/validateToken.helper')
 
 const getCustomer = async (request, res) => {
-    console.log("getcustomer")
+
     res.render('customer', {title : 'Customers', layout:'layout'});
-}
-const getCustomerByStaff = async (request, res) => {
-    console.log("getcustomer")
-    res.render('customer', {title : 'Customers', layout:'layoutstaff'});
 }
 
 
 const getCustomerById = async (request, response) => {
-    console.log("getCustomerById")
+
     try {
 		
 		const {id} = request.params;
 		
 
 		var query = `SELECT main.id, main.fullname, main.citizenIdentityCard,
-		main.address, main.phone, main.dateofbirth, main.gender, main.customertype, cus.customertypename
+		main.address, main.dateofbirth, main.gender, main.customertype, cus.customertypename
 		FROM Customers main LEFT JOIN customertypes cus on (main.customertype = cus.id)
 		WHERE main.id = "${id}"`;
 
 		const pool = mysql.createPool(configMysql);
 		const customer = await pool.query(query);
 		await pool.end();
-		console.log(customer[0])
+
 		response.json({
 			data: customer[0][0],
 			success: true
 		});
 
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -46,22 +42,27 @@ const getCustomerById = async (request, response) => {
 }
 
 const searchCustomer = async (request, response) => {
-    console.log("searchCustomer")
+
     try {
 		const {search} = request.body;
+		var searchWith = '';
+		if(search !== '') {
+			searchWith = ` AND main.fullname LIKE '%${search}%'  `;
+		}
 
 		var query = `SELECT main.id, main.fullname, main.citizenIdentityCard,
-		main.address, main.phone, main.dateofbirth, main.gender, 
+		main.address,  main.dateofbirth, main.gender, 
 		main.customertype, cus.customertypename, gen.gendername
 		FROM Customers main 
 		LEFT JOIN customertypes cus on (main.customertype = cus.id)
 		LEFT JOIN genders gen on (main.gender = gen.id)
-		WHERE main.fullname LIKE '%${search}%' OR  main.phone LIKE '%${search}%' `;
+		WHERE  main.isDelete = ?
+		` + searchWith;
 
 		const pool = mysql.createPool(configMysql);
-		const customer = await pool.query(query);
+		const customer = await pool.query(query, [isDelete.false]);
 		await pool.end();
-		console.log(customer[0])
+
 		response.json({
 			data: customer[0],
 			success: true, 
@@ -69,7 +70,7 @@ const searchCustomer = async (request, response) => {
 		});
 
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -78,21 +79,19 @@ const searchCustomer = async (request, response) => {
 }
 
 const postCustomer = async (request, response) => {
-    console.log("postCustomer")
+
     try {
-		console.log("requestbody :::", request.body);
-		console.log("data:::", request.body.data)
-        const {fullname, phone, address, citizenIdentityCard, customertype, dateofbirth, gender} = request.body;	
+
+        const {fullname,  address, citizenIdentityCard, customertype, dateofbirth, gender} = request.body;	
         
 		const date = formatDate(dateofbirth);
 
 		var query = `
 		INSERT INTO Customers 
-		(fullname, phone, address, citizenIdentityCard, customertype, dateofbirth, gender) 
-		VALUES ('${fullname}', '${phone}', '${address}', '${citizenIdentityCard}', 
-        '${customertype}', '${date}', '${gender}') `;
+		(fullname,  address, citizenIdentityCard, customertype, dateofbirth, gender) 
+		VALUES (?, ? , ? ,? , ? , ?) `;
 		const pool = mysql.createPool(configMysql);
-		await pool.query(query);
+		await pool.query(query, [fullname,  address, citizenIdentityCard, customertype, dateofbirth, gender]);
 		await pool.end();
 		response.json({
 			message : 'Data Added',
@@ -100,7 +99,7 @@ const postCustomer = async (request, response) => {
 		});
 
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -109,25 +108,24 @@ const postCustomer = async (request, response) => {
 }
 
 const putCustomerById = async (request, response) => {
-    console.log("putCustomerById")
+
     try {
-		console.log("Edit ::: ");
-		const {id, fullname, phone, address, citizenIdentityCard, customertype, dateofbirth, gender} = request.body;	
+
+		const {id, fullname, address, citizenIdentityCard, customertype, dateofbirth, gender} = request.body;	
 
         const date = formatDate(dateofbirth);
 		var query = `
 		UPDATE Customers 
-		SET fullname = "${fullname}", 
-		phone = "${phone}", 
-		address = "${address}", 
-		citizenIdentityCard = "${citizenIdentityCard}" ,
-        customertype = "${customertype}", 
-		dateofbirth = "${date}", 
-		gender = "${gender}" 
-		WHERE id = "${id}"
+		SET fullname = ?, 
+		address = ?, 
+		citizenIdentityCard = ? ,
+        customertype = ?, 
+		dateofbirth = ?, 
+		gender = ? 
+		WHERE id = ?
 		`;
 		const pool = mysql.createPool(configMysql);
-		await pool.query(query);
+		await pool.query(query, [fullname, address, citizenIdentityCard, customertype, dateofbirth, gender, id]);
 		await pool.end();
 		response.json({
 			message : 'Data Edited', 
@@ -135,7 +133,7 @@ const putCustomerById = async (request, response) => {
 		});
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -144,7 +142,7 @@ const putCustomerById = async (request, response) => {
 }
 
 const deleteCustomerById = async (request, response) => {
-    console.log("deleteCustomerById")
+
     try {
 		const {id} = request.body
 
@@ -162,7 +160,7 @@ const deleteCustomerById = async (request, response) => {
 		});
 
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -171,13 +169,13 @@ const deleteCustomerById = async (request, response) => {
 }
 
 const getCustomerByIdFromTo = async (request, response) =>{
-	console.log("getCustomerByIdFromTo")
+
 	try {
 		const {id, rowinpage} = request.params;
-		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+
 			
 			var queryCustomer = `SELECT main.id, main.fullname, main.citizenIdentityCard,
-			main.address, main.phone, main.dateofbirth, gen.gendername , cus.customertypename
+			main.address,  main.dateofbirth, gen.gendername , cus.customertypename
 			FROM Customers main LEFT JOIN CustomerTypes cus on (main.customertype = cus.id)
 			LEFT JOIN Genders gen on (main.gender = gen.id)
 			WHERE main.isDelete = ${isDelete.false}  ORDER BY main.id ASC
@@ -201,7 +199,7 @@ const getCustomerByIdFromTo = async (request, response) =>{
 			
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -212,9 +210,9 @@ const getCustomerByIdFromTo = async (request, response) =>{
 const getAllCustomer = async (request, response) => {
 	
     try {
-		console.log("fetch");
-			var queryCustomer = `SELECT main.id, main.fullname, main.citizenIdentityCard,
-			main.address, main.phone, main.dateofbirth, gen.gendername , cus.customertypename
+
+			var queryCustomer = `SELECT main.id, main.fullname as fullname, main.citizenIdentityCard,
+			main.address,  main.dateofbirth, gen.gendername , cus.customertypename
 			FROM Customers main LEFT JOIN CustomerTypes cus on (main.customertype = cus.id)
 			LEFT JOIN Genders gen on (main.gender = gen.id)
 			WHERE main.isDelete = ${isDelete.false}  ORDER BY main.id ASC`; 
@@ -236,7 +234,7 @@ const getAllCustomer = async (request, response) => {
 			});
         
     } catch (error) {
-        console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -253,7 +251,6 @@ module.exports = {
 	putCustomerById,
 	deleteCustomerById,
 	getCustomerByIdFromTo,
-	searchCustomer,
-	getCustomerByStaff
+	searchCustomer
 };
 

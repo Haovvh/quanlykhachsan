@@ -82,8 +82,9 @@
                                 <tr>
                                     <th scope="col">STT</th>
                                     <th scope="col">Tên</th>
-                                    <th scope="col">SDT</th>
+                                    <th scope="col">CCCD</th>
                                     <th scope="col">Loại khách</th>
+        
                                 </tr>
                             </thead>
                             <tbody>`;
@@ -275,7 +276,7 @@
                     <tr>
                         <td >${parseInt(j+1)}</td>
                         <td>${customer.fullname}</td>
-                        <td>${customer.phone}</td>
+                        <td>${customer.citizenIdentityCard}</td>
                         <td>${customer.customertypename}</td> 
                     </tr>
                 `;
@@ -303,7 +304,7 @@
                         alert("Vui lòng đăng nhập lại")
                         window.location.assign('/login')
                     }
-                    console.log(data)
+
                     if(data.success) {                  
                         book = data.book;
                         roomServiceDetails = []; 
@@ -336,7 +337,7 @@
                                         customerDetails.push({
                                             id: loadBookDetail[i].customerid,
                                             customertypename: loadBookDetail[i].customertypename,
-                                            phone: loadBookDetail[i].phone,
+                                            citizenIdentityCard: loadBookDetail[i].citizenIdentityCard,
                                             fullname: loadBookDetail[i].fullname,
                                         })
                                     }

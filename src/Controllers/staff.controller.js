@@ -12,7 +12,7 @@ const getStaffByIdFromTo = async (request, response) =>{
 
 	try {
 		const {id, rowinpage} = request.params;
-		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+		
 			var queryStaff = `SELECT main.*, bra.branchname
 			FROM Staffs main 
 			LEFT JOIN Branch bra on (main.branchtype = bra.id)			
@@ -31,7 +31,7 @@ const getStaffByIdFromTo = async (request, response) =>{
 			
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -40,9 +40,9 @@ const getStaffByIdFromTo = async (request, response) =>{
 }
 
 const postStaff = async (request, response) => {
-	console.log("postStaff");
+
 	try {
-		console.log(request.body);
+
 		const {username, password, branchtype} = request.body;	
 		const salt = bcrypt.genSaltSync();
         const pass = bcrypt.hashSync( password, salt );
@@ -59,27 +59,29 @@ const postStaff = async (request, response) => {
 		});
 
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
 		})
 	}
 }
+
 const putStaffById = async (request, response) => {
-	console.log("putStaffById");
+
 	try {
-		const {id, username, password, branchtype} = request.body;	
-        console.log(request.body);
+
+		const {id,  password} = request.body;	
+
 		var query = `
 		UPDATE Staffs 
-		SET username = ?, 
-		branchtype = ?,   
-		description = ? 
+		SET password = ?
 		WHERE id = ?
 		`;
+		const salt = bcrypt.genSaltSync();
+        const pass = bcrypt.hashSync( password, salt );
 		const pool = mysql.createPool(configMysql);
-		await pool.query(query,[username, password, branchtype, id]);
+		await pool.query(query,[ pass, id]);
 		await pool.end();
 		response.json({
 			message : 'Data Edited',
@@ -87,7 +89,7 @@ const putStaffById = async (request, response) => {
 		});
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -95,7 +97,7 @@ const putStaffById = async (request, response) => {
 	}
 }
 const deleteStaffById = async (request, response) => {
-	console.log("deleteStaffById");
+
 	try {
 		var {id} = request.body;
 
@@ -113,7 +115,7 @@ const deleteStaffById = async (request, response) => {
 		});
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -122,7 +124,7 @@ const deleteStaffById = async (request, response) => {
 }
 
 const getStaffById = async (request, response) => {
-	console.log("getStaffById");
+
 	try {
 		const {id} = request.params;
 
@@ -141,7 +143,7 @@ const getStaffById = async (request, response) => {
 			success: true
 		});
 	} catch (error) {
-		console.log("Error ==>::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -153,27 +155,29 @@ const searchStaff = async (request, response) => {
 	
 	try {
 		const {search} = request.body;
-
-		var query = `SELECT main.*, bra.branchname
+		var searchWith = '';
+		if(search !== '') {
+			searchWith = `AND main.username LIKE '%${search}%' 
+			  `
+		}
+		var query = `SELECT main.*, 
+		bra.branchname
 		FROM Staffs main
-		LEFT JOIN branchs bra on (bra.id = main.branchtype)
-		
-		WHERE main.username LIKE '%${search}%' 
-		OR bra.branchname LIKE '%${search}%'
-		AND main.isDelete = ?  
-		`;
+		LEFT JOIN branchs bra on (bra.id = main.branchtype)		
+		WHERE main.isDelete = ? 		
+		` + searchWith;
 		
 		const pool = mysql.createPool(configMysql);
 		const Staff = await pool.query(query,[isDelete.false]);
 		await pool.end();
-		console.log(Staff[0])
+
 		response.json({
 			data: Staff[0],
 			success: true, 
 			rowInPage: rowInPage
 		});
 	} catch (error) {
-		console.log("Error ==>::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -182,7 +186,6 @@ const searchStaff = async (request, response) => {
 }
 
 const getAllStaff = async (request, response) => {
-    console.log("getAllStaff ::::")
     
 	
     try {
@@ -198,8 +201,8 @@ const getAllStaff = async (request, response) => {
 		
 		var branchs = await pool.query(`SELECT * 
 		FROM branchs 
-			WHERE isDelete = ?
-			ORDER BY id ASC`,[isDelete.false]);
+		WHERE isDelete = ?
+		ORDER BY id ASC`,[isDelete.false]);
 		
 		await pool.end();
 		
@@ -214,7 +217,7 @@ const getAllStaff = async (request, response) => {
 			
 
     } catch (error) {
-        console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false

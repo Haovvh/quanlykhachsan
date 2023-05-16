@@ -6,7 +6,7 @@ const mysql = require('mysql2/promise');
 
 
 const index = async (request, response) => {
-	console.log("get index");
+
 	try {
 		var query = `
 		SELECT * FROM Customers`;
@@ -16,7 +16,7 @@ const index = async (request, response) => {
 		response.render('Index', {title:'Index', role:'all'})
 
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false

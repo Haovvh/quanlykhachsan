@@ -1,96 +1,4 @@
-<div class="container " style="margin-top: 50px" hidden>
-    <div class="row justify-content-center">        
-      <!-- ITEMS -->
-      <% for(var i = 0; i < data.length; i++) { %>
-      <div class="col-md-3">
-        <div class="p-1">
-          <div class="card">
-            <% if(data[i].status === 'SANSANG') { %>    
-                <button class="btn btn-success chooseroom" data-id="<%= data[i].id%>">                    
-            <% } else { %>
-                <button class="btn btn-warning chooseroom " data-id="<%= data[i].id%>">                    
-            <% } %>
-                <img src="<%= data[i].cover %>" class="card-img-top">
-                  <div class="card-body">
-                    <h4 class="card-title"><%= data[i].roomname %></h4>
-                    <p class="card-text"><%= data[i].price.toLocaleString() %></p>
-                    <p class="card-text">Số lượng người tối đa: <%= data[i].maxcustomer %></p>
-                  </div>
-                  </button>
-            
-          </div>
-        </div>
-      </div>
-      <% } %>
-    </div>
-  
-   <!-- pagination -->
-    <div class="row">
-      <!-- hiển thị phân trang nếu có trang -->
-      <% if(pages > 0) { %>
-      <nav class="mx-auto">
-        <ul class="pagination justify-content-center" style="margin-top: 2rem;">
-        
-          <!-- FIRST ITEM -->  
-          <% if(current == 1) { %> 
-        
-              <li class="page-item disabled">
-                  <button class="page-link pagesindex" id="pagesindex" data-id="<%= firstPage %>">First</button>
-              </li>
-          <% } else { %>
-          
-              <li class="page-item">
-                <button class="page-link pagesindex" id="pagesindex" data-id="<%= firstPage  %>">First</button>
-                  
-              </li>
-          <% } %>
-          
-          <!-- ITEMS  -->
-          <% var i = (Number(current) > 3 ? Number(current) - 2 : 1) %> 
-              
-          <% if(i !== 1) { %>
-            <!-- ITEMS2222  -->
-              <li class="page-item disabled">
-                  <button class="page-link">...</button>
-              </li>
-          <% } %>
-          <% for(; i <= (Number(current) + 2) && i <= pages; i++) { %>
-          <!-- ITEMS1111  -->
-            <% if(i == current) { %>
-              <li class="page-item active">
-                <button class="page-link pagesindex" id="pagesindex" data-id="<%= i %>"><%= i %></button> 
-                
-              </li>
-          <% } else { %>
-              <li class="page-item">
-                <button class="page-link pagesindex" id="pagesindex" data-id="<%= i %>"><%= i %></button>                
-              </li>
-          <% } %>
-          <% if (i == Number(current) + 2 && i < pages) { %>
-              <li class="page-item disabled">
-                <button class="page-link" >...</button>
-              </li>
-          <% } %>
-        <% } %>
-          
-          <!-- LAST ITEM -->
-          <% if(current == pages) { %> 
-         
-              <li class="page-item disabled">
-                <button class="page-link pagesindex" id="pagesindex" data-id="<%= lastPage %>">Last</button>                
-              </li>
-          <% } else { %>
-          
-              <li class="page-item">
-                <button class="page-link pagesindex" id="pagesindex" data-id="<%= pages %>">Last</button>
-              </li>
-          <% } %>
-        </ul>
-      </nav>
-      <% } %>
-    </div>
-</div>
-  
+
 
 <!-- Book -->
 
@@ -109,7 +17,10 @@
         </div>
         
     </div>
-    <div class="row justify-content-center totalroom" id="totalroom">
+    <div class="row justify-content-left totalroom" id="totalroom">
+            
+    </div>
+    <div class="card-text pages row justify-content-center"  id="pages">
             
     </div>
 </div>
@@ -148,8 +59,7 @@
                             
                         </div>
                         <div class="row">
-                            <div class="col">
-                                <input type="text" class="form-control idroom"  id="idroom" name="idroom" hidden>
+                            <div class="col">                                
                                 <select name="roomid" id="roomid" class="form-select roomid" >
                                 </select>
                             </div>
@@ -239,7 +149,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3 input-group input-group-outline">
+                    <div class="mb-3 ">
                         <label class="form-label">FullName</label>                        
                         <input type="text" name="fullname" list="listcustomer" id="fullname" class="form-control"  required/>
                         <datalist id="listcustomer">
@@ -269,14 +179,14 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3 input-group input-group-outline">
+                    <div class="mb-3 ">
                         <label class="form-label">RoomServicename</label>
                         <input type="text" name="roomservicename" list="listRoomService" id="roomservicename" class="form-control"  required/>
                         <datalist id="listRoomService">
 
                         </datalist>
                     </div>
-                    <div class="mb-3 input-group input-group-outline">
+                    <div class="mb-3 ">
                         <label class="form-label">Quantity</label>
                         <input type="number" name="quantity" id="quantity" class="form-control quantity" required/>
                     </div>
@@ -296,6 +206,7 @@
 
 
 <script>
+    var maxCustomer = 1;
     const statusRoom = ['SANSANG', 'DANGTHUE', 'VESINH', 'BAOTRI']
     const ViewModeCustomer = ["CREATE","EDITCUSTOMER","DELETECUSTOMER"]
     const ViewModeServiceDetail = ["CREATE","EDITSERVICEDETAIL","DELETESERVICEDETAIL"]
@@ -328,18 +239,87 @@
     var statusMode = "DEFAULT";
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
     var indexMode = "POST";
-    const BOOKMODE = ['GET', 'POST', 'PUT', 'DELETE'];
     var bookViewMode = 'POST';
     var htmlRoom ="";
+    var rowInPage = 10;
+    var lastPage = 1;
+    var pages = 1;
 
     const user = JSON.parse(localStorage.getItem('user'));
-    console.log(user)
+
     var token = "";
     var staffid = ""
     if (user && user.accessToken) {        
         token = `Bearer ${user.accessToken}`
         staffid = user.id        
     }
+    const displaypages = (pages, current, lastPage) =>{
+        var firstPage = 1;
+        var bodyPages = ``;
+        if(pages > 0) { 
+            bodyPages += `
+            <div class="justify-content-center">
+            <nav class="mx-auto justify-content-center">
+            <ul class="pagination justify-content-center" style="margin-top: 2rem;">`;
+            if(current === 1) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>                
+                </li>`;
+            } else { 
+                bodyPages += `
+                <li class="page-item">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>
+                </li>`
+            } 
+            var i = (Number(current) > 3 ? Number(current) - 2 : 1) 
+  
+            if(i !== 1) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link" >...</button>
+                </li>`
+            } 
+            for(; i <= (Number(current) + 2) && i <= pages; i++) {
+                if(i == current) { 
+                    bodyPages += `
+                    <li class="page-item active">
+                        <button class="page-link pagesindex" id="pagesindex" data-id="`+i+`">${i}</button>                    
+                    </li>`;
+                } else { 
+                    bodyPages += `
+                    <li class="page-item">
+                        <button class="page-link pagesindex" id="pagesindex" data-id="`+i+`">${i}</button>
+                    </li>`
+                } 
+                if (i == Number(current) + 2 && i < pages) { 
+                    bodyPages += `
+                    <li class="page-item disabled">
+                        <button class="page-link" >...</button>
+                    </li>`
+                } 
+            }
+        
+            if(current === pages) { 
+                bodyPages += `
+                <li class="page-item disabled">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Last</button>                
+                </li>`
+            } else { 
+                bodyPages += `
+                <li class="page-item">
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Last</button>                
+                </li>`
+            }
+            bodyPages += `
+                </ul>
+            </nav>
+            </div>
+            `;
+        } 
+        document.querySelector('#pages').innerHTML = bodyPages;
+    }
+    
     
     const headerCustomer = `
                 <div class="col">
@@ -350,7 +330,6 @@
                                 <tr>
                                     <th scope="col">STT</th>
                                     <th scope="col">Tên</th>
-                                    <th scope="col">SDT</th>
                                     <th scope="col">CCCD</th>
                                     <th scope="col">Loại khách</th>
                                     <th scope="col"></th>
@@ -371,7 +350,8 @@
                         <table class="table table-striped table-bordered" id="roomdetail">
                             <thead>
                                 <tr>
-                                    <th scope="col">Tên Phòng</th>                                    
+                                    <th scope="col">Tên Phòng</th>      
+                                    <th scope="col">Max Customer</th>                                
                                     <th scope="col">Ngày Thuê/ Ngày Trả</th>                                 
                                     <th scope="col">Số Ngày</th>
                                     <th scope="col">Đơn giá/ngày (VND)</th>
@@ -507,7 +487,7 @@
         const roominputid = document.getElementById('roomid').value;
         checkindate = checkindate.toLocaleString();
         checkoutdate = checkoutdate.toLocaleString();
-        console.log("checkin", checkindate)
+
 
         var hour = 0;
         var tempday = 0;
@@ -532,13 +512,16 @@
         }        
 
         if (rooms && rooms.length >0 ) {
+            
             for(let i =0; i< rooms.length ; i++) {
                 if(roominputid === rooms[i].id + "") {
+                    maxCustomer = rooms[i].maxcustomer
                     var temproom = rooms[i];
                     totalRoom =  Math.round( parseInt(tempday) * rooms[i].price  + parseInt(hour)*rooms[i].price/10);
                     this.bodyRoom += `
                         <tr>
-                            <td>${rooms[i].roomname}</td>
+                            <td>${rooms[i].roomname} </td>
+                            <td> ${rooms[i].maxcustomer} </td>
                                         
                             <td>${checkindate.toLocaleString()}     /     ${checkoutdate.toLocaleString()}</td>
                             
@@ -578,7 +561,6 @@
                                                 <input id="customerid" name="customerid" value="${customer.id}" hidden>
                                             </td>
                                             <td>${customer.fullname}</td>
-                                            <td>${customer.phone}</td>
                                             <td>${customer.citizenIdentityCard}</td>
                                             <td>${customer.customertypename}</td>                                        
                                             <td>
@@ -600,24 +582,59 @@
         displayCustomerDetail();
         
     }
+    const displayRoom = (rowInPage,  datas) => {
+        htmlRoom = `                        
+                        `;                        
+                        for(let i= 0; i<rowInPage; i++){
+                            let data = datas[i]
+                            let totalmoney = parseInt((data.price)).toLocaleString(undefined)
+                            htmlRoom += `
+                            <div class="col-md-3">
+                            <div class="p-1">
+                            <div class="card">
+                                <button type="button" class="btn `;
 
+                            if(data.status === statusRoom[0]){
+                                htmlRoom += `btn-success`;
+                                
+                            } else if (data.status === statusRoom[1]) {
+                                htmlRoom += `btn-warning`                            
+                            } else if (data.status === statusRoom[2]){
+                                htmlRoom += `btn-danger`;
+                            }else if (data.status === statusRoom[3]){
+                                htmlRoom += `btn-dark`;
+                            }
+                            htmlRoom +=  `  chooseroom" data-id="${data.id}">
+                                        <div class="card-body">
+                                            <h4 class="card-title"> ${data.roomname}</h4>
+                                            <p class="card-text">${totalmoney} (VND/Ngày)</p>
+                                        <p class="card-text">Max Customer: ${data.maxcustomer}</p>
+                                    
+                                        </div>
+                                        </button>
+                                        </div>
+                                </div>
+                            </div>
+                            `;
+                           
+                            
+        }
+        document.querySelector('#totalroom').innerHTML = htmlRoom;
+                    
+    }
 
     $(document).ready( function(){
     
         load_data();    
-        function load_data() {  
-            console.log("load_data ")  
-            var role = "";
-            if (localStorage.getItem('user') && JSON.parse(localStorage.getItem('user')).role !== 'admin') {
-                role = JSON.parse(localStorage.getItem('user')).role
-            }
+        
+        function load_data() {             
             
             bookViewMode = viewMode[1];
             document.getElementById("roomform").style.display = 'block';
             
             document.getElementById("bookingform").style.display = 'none';
             $.ajax({
-                url: '/room/all',
+                url: '/room/allbystaff',
                 method:viewMode[0],
                 headers: {
                     'Authorization':token,
@@ -625,79 +642,45 @@
                 dataType : "JSON",
                 success:function(data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/loginstaff')
-                    }
-                    console.log("data  ===> ", data.data)
+      
                     htmlRoom = "";
                     
                     if(data.success){
                         rooms = data.data;
                         
                         const tempData = data.data;
-
-                        console.log("tempdata", tempData)
-                        htmlRoom += `
-                        
-                        `;
-                        
-                        for(let i= 0; i<tempData.length; i++){
-                            
-                            htmlRoom += `
-                            <div class="col-md-3">
-                            <div class="p-1">
-                            <div class="card">
-                                <button type="button" class="btn `;
-
-                            if(tempData[i].status === statusRoom[0]){
-                                htmlRoom += `btn-success`;
-                                
-                            } else if (tempData[i].status === statusRoom[1]) {
-                                htmlRoom += `btn-warning`                            
-                            } else if (tempData[i].status === statusMode[2]){
-                                htmlRoom += `btn-danger`;
-                            }else if (tempData[i].status === statusMode[3]){
-                                htmlRoom += `btn-dark`;
-                            }
-                            htmlRoom +=  `  chooseroom" data-id="${tempData[i].id}">
-                            <div class="card-body">
-                                <h4 class="card-title"> ${tempData[i].roomname}</h4>
-                                <p class="card-text">${tempData[i].price}</p>
-                            <p class="card-text">Số lượng người tối đa: ${tempData[i].maxcustomer}</p>
-                           
-                            </div>
-                            </button>
-                            </div>
-                    </div>
-                </div>
-                  `;
-                           
-                            
-                        }
+                        rowInPage = data.rowRoomPage
+                        pages = Math.ceil(data.data.length/rowInPage)
+                        const current = 1;
+                        lastPage = Math.ceil(data.data.length/rowInPage)
+                        const _stt = 0;
+                        let row = data.data.length;
+                        if(row > rowInPage) {
+                            row = rowInPage
+                        } 
+                        displaypages(pages, current, lastPage);
+                        displayRoom(row, data.data)
+                       loadBookDetail();
                     }
-                    document.querySelector('#totalroom').innerHTML = htmlRoom; 
+                     
                     
                 }
             });
         }
 
         $(document).on('click', '.chooseroom',  function(){
-            loadBookDetail();
+            
             var id = $(this).data('id');
-
              $.ajax({
-                url: `room/${id}`,
+                url: `room/staff/${id}`,
                 method: viewMode[0],
                 headers: {
                     'Authorization':token,
                 },
                 dataType: "JSON",
-                success: async function(data) {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/loginstaff')
-                    }
+                success:  function(data) {
+                    
+                    maxCustomer = data.data.maxcustomer;
                     if(data.success) {
                         saveRoom = false;
                         const temp = data.data
@@ -705,14 +688,15 @@
                         roomid = temp.id;
                         document.getElementById("roomform").style.display = 'none';
                         document.getElementById("bookingform").style.display = 'block';
-                        $('#roomid').val(roomid)
-                        $('#idroom').val(roomid)
-
+                        
+                        
                         if(data.roomisuse) {
                             bookId = data.roomisuse.bookid;
-                            console.log("roomisuse::",data.roomisuse)
-                             loadBookByBookId(data.roomisuse.bookid);
-                        } else {                            
+                            loadBookByBookId(data.roomisuse.bookid);
+                        } else {      
+                 
+                            displaySelectRoom(data.roomsuccess)    
+                            $('#roomid').val(roomid)                
                             indexMode = viewMode[1];
                         }            
                     }                    
@@ -738,12 +722,9 @@
                 },
                 dataType : "JSON",
                 success: function( data){
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/loginstaff')
-                    }
+                    
                     if(data.success) {
-                                              
+                        
                         book = data.book;
                         roomServiceDetails = []; 
                         customerDetails = [];
@@ -754,33 +735,29 @@
 
                         bookDetails = data.bookdetail;
                            
-                                if(book && book.length >0) {
+                        if(data.book && data.book.length >0) {
+                            let temp = data.book[0];
+         
+                            var tempcheckout = temp.checkoutdate.toString().slice(0,16);
+                            var tempcheckin = temp.checkindate.toString().slice(0,16);
                                     
-                                    let temp = book[0];
-
-                                    var tempcheckout = temp.checkoutdate.toString().slice(0,16);
-                                    var tempcheckin = temp.checkindate.toString().slice(0,16);
+                            $('#roomid').val(temp.roomid)                                    
+                            $('#paymentid').val(temp.paymentid)
+                            $('#checkoutdate').val(tempcheckout)
+                            $('#checkindate').val(tempcheckin)
+                            $('#checkindate').prop('disabled', true);      
+                            $('#roomid').prop('disabled', true);                      
+                            $('#bookid').val(bookid)
                                     
-                                    $('#roomid').val(temp.roomid)
-                                    $('#idroom').val(temp.roomid)
-                                    
-                                    $('#paymentid').val(temp.paymentid)
-                                    $('#checkoutdate').val(tempcheckout)
-                                    $('#checkindate').val(tempcheckin)
-                                    //$('#checkindate').attr('disable','disable')
-                                    $('#checkindate').prop('disabled', true);
-                                    console.log("bookid ===>", bookid)
-                                    $('#bookid').val(bookid)
-                                    
-                                }
-                                if(loadBookDetail && loadBookDetail.length>0) {                              
-                                    for(let i = 0; i < loadBookDetail.length; i++) {
-                                        customerDetails.push({
-                                            id: loadBookDetail[i].customerid
-                                        })
-                                    }
-                                    bodyCustomerDetail();        
-                                }
+                        }
+                        if(loadBookDetail && loadBookDetail.length>0) {                              
+                            for(let i = 0; i < loadBookDetail.length; i++) {
+                                customerDetails.push({
+                                id: loadBookDetail[i].customerid
+                            })
+                            }
+                        bodyCustomerDetail();        
+                        }
                                 if(loadRoomServices && loadRoomServices.length > 0) {
                                     
                                     for (let i = 0; i< loadRoomServices.length ; i++) {
@@ -800,21 +777,16 @@
             })    
         }
 
-        const loadBookDetail =  () => {
+        function loadBookDetail  () {
             $.ajax({
-                url: '/book/load',
+                url: '/book/staff/load',
                 method: viewMode[0],
                 headers: {
                     'Authorization':token,
                 },
                 dataType : "JSON",
                 success:  function( data)
-                {
-                    console.log("rooms",data.rooms)
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/loginstaff')
-                    }
+                {                 
                     const tempRoom = data.rooms
                     customers = data.customers;
                     roomServices = data.roomservices;
@@ -845,27 +817,33 @@
                         `;                        
                     } 
 
-                    if(tempRoom && tempRoom.length > 0) {
-                        for(var count = 0; count < tempRoom.length; count++)
-                        {
-                           htmlOptionRoom += `<option value="${tempRoom[count].id}">${tempRoom[count].roomname}</option>
-                            `;
-                        }  
-                    }
+                    displaySelectRoom(tempRoom);
                     
                     if(payments && payments.length >0) {
                         for(let index = 0 ; index < payments.length; index++) {
                             htmlOptionPayment += `<option value="${payments[index].id}">${payments[index].paymentname}</option>
                             ` ;
                         }
+                        document.getElementById('paymentid').innerHTML = htmlOptionPayment;
                     }
-                    document.getElementById('roomid').innerHTML = htmlOptionRoom;
-                    document.getElementById('paymentid').innerHTML = htmlOptionPayment;
-                    statusMode = ViewModeCustomer[0];;
+                    
+                    
+                    statusMode = ViewModeCustomer[0];
                     
                 }
             });            
         }
+        const displaySelectRoom = (tempRoom) => {
+            htmlOptionRoom =``;
+            if(tempRoom && tempRoom.length > 0) {
+                for(var count = 0; count < tempRoom.length; count++) {
+                    htmlOptionRoom += `<option value="${tempRoom[count].id}">${tempRoom[count].roomname}</option>
+                    `;
+                } 
+                document.getElementById('roomid').innerHTML = htmlOptionRoom; 
+            }
+        }
+        
         
         const checkDate = () =>{
             let checkindate = document.getElementById("checkindate").value
@@ -906,7 +884,7 @@
         //addRoomService
         $('#addItems').click(function(){         
                 let _item = document.getElementById("itemId").value;
-                console.log("Items ::: ", _item);
+
                 if(_item === "customer") {
                     $('#dynamicModalTitle').text('Add Customer');
         
@@ -921,7 +899,7 @@
                     $('#actionModal').modal('show');
                     statusMode = ViewModeCustomer[0];
                 } else if (_item === "roomservice"){
-                    console.log("RoomService::: ")
+   
                     
                     $('#dynamicModalTitleRoom').text('Add RoomService');
         
@@ -943,42 +921,43 @@
 
         $('#saveBook').click(function(event){
             
-            if(customerDetails && customerDetails.length >0) {                
-                if(checkDate() ) {
-                    if(saveRoom) {
-                        if(confirm("Bạn có muốn lưu?")) {
-                            event.preventDefault();
-                            $.ajax({
-                                url:'/book',
-                                method: indexMode,
-                                headers: {
-                                    'Authorization':token,
-                                },
-                                data: $('#bookformdetail').serialize(),
-                                dataType:"JSON",
-                                success:function(data)
-                                {
-                                    if(data && data.success === false && data.statusCode === 400) {
-                                        alert("Vui lòng đăng nhập lại")
-                                        window.location.assign('/loginstaff')
-                                    }
-                                    console.log("data ::::: ",data)
-                                    if(data && data.success) {
-                                        loadBookIsPay =false;
-                                        alert("Success");
-                                        window.location.reload();
+            if(customerDetails && customerDetails.length >0) {  
+                if (customerDetails.length <= maxCustomer) {
+                    if(checkDate() ) {
+                        if(saveRoom) {
+                            if(confirm("Bạn có muốn lưu?")) {
+                                event.preventDefault();
+                                $.ajax({
+                                    url:'/book',
+                                    method: indexMode,
+                                    headers: {
+                                        'Authorization':token,
+                                    },
+                                    data: $('#bookformdetail').serialize(),
+                                    dataType:"JSON",
+                                    success:function(data)
+                                    {
                                         
-                                    }                    
-                    
-                                }
-                            });
+                                        
+                                        if(data && data.success) {
+                                            loadBookIsPay =false;
+                                            alert("Success");
+                                            window.location.reload();
+                                            
+                                        }                    
+                        
+                                    }
+                                });
+                            }
+                            
+                        } else {
+                            alert("Vui lòng lưu phòng trước???");
                         }
-                         
-                    } else {
-                        alert("Vui lòng lưu phòng trước???");
                     }
-                }
-                    
+                } else {
+                        alert("Số lượng khách lớn hơn quy định của Hotel")
+                    }             
+                  
             } else {
                 alert("Vui lòng nhập Khách hàng???")
             }
@@ -1001,7 +980,7 @@
                         },
                         data:{
                             bookid: bookId,
-                            roomid: document.getElementById("idroom").value,
+                            roomid: document.getElementById("roomid").value,
                             totalmoney: totalRoom + totalRoomService,
                             paymentid: document.getElementById('paymentid').value,
                             staffid: staffid
@@ -1009,11 +988,6 @@
                         dataType:"JSON",
                         success:function(data)
                         {
-                            if(data && data.success === false && data.statusCode === 400) {
-                                alert("Vui lòng đăng nhập lại")
-                                window.location.assign('/loginstaff')
-                            }
-                            
                             if(data && data.success) {
                                 alert("Success");
 
@@ -1026,7 +1000,8 @@
         });            
     
         $('#customerForm').on('submit', function(event){            
-            
+            console.log(customerDetails.length)
+            console.log(maxCustomer)
             let valueCustomer = document.getElementById("fullname").value;
             let _id = $("#listcustomer option").filter( function() {
                 return this.value == valueCustomer;
@@ -1046,16 +1021,12 @@
                     },
                     success:function(data)
                     {
-                        if(data && data.success === false && data.statusCode === 400) {
-                            alert("Vui lòng đăng nhập lại")
-                            window.location.assign('/loginstaff')
-                        }
                         loadBookIsPay = false;
                         if (data.success) {
                             const temp = data.data
                             
                             if(bookViewMode === viewMode[1]) {
-                                console.log("post")
+
                                 customerDetails.push({
                                     id: temp.id
                                 })
@@ -1085,7 +1056,6 @@
             }).data('id');
             let _quantity = document.getElementById("quantity").value;
 
-            console.log("_quantity :::", _quantity)
             event.preventDefault();
             if(_id) {  
                 $.ajax({
@@ -1100,15 +1070,10 @@
                     },
                     success:function(data)
                     {
-                        if(data && data.success === false && data.statusCode === 400) {
-                            alert("Vui lòng đăng nhập lại")
-                            window.location.assign('/loginstaff')
-                        }
                         loadBookIsPay = false;
                         
                         if(data.success) {
                             const temp = data.data;
-                            console.log("OKKKKK :::  ", statusMode)
                             if(statusMode === ViewModeServiceDetail[0]) {
                                 roomServiceDetails.push({
                                     id: temp.id,
@@ -1134,9 +1099,8 @@
             });        
 
             //Edit dang bị lỗi
-        $(document).on('click', '.editBookdetail', function(){
-            
-            console.log("editBookdetail")            
+        $(document).on('click', '.editBookdetail', function(){           
+      
     
             var id = $(this).data('id');
 
@@ -1162,11 +1126,7 @@
                 dataType:"JSON",
                 success:function(data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/loginstaff')
-                    }
-                    console.log("Data::::", data);
+                    
                     $('#fullname').val(data.fullname);   
                     statusMode = ViewModeCustomer[1]; 
                     bookViewMode = viewMode[2];
@@ -1176,7 +1136,7 @@
         
         $(document).on('click', '.editRoomservice', function(){
             
-            console.log("editRoomservice")            
+       
     
             var id = $(this).data('id');
             indexRoomService = $(this).data('index');
@@ -1203,11 +1163,7 @@
                 dataType:"JSON",
                 success:function(data)
                 {      
-                    //set quantity cua roomservice đó    
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/loginstaff')
-                    }
+                    
                     $('#roomservicename').val(data.roomservicename);
                     $('#quantity').val(tempQuantity)
                     statusMode = ViewModeServiceDetail[1];
@@ -1237,27 +1193,23 @@
 
             var id = $(this).data('id');
             id = parseInt(id);
-            alert(id)
+                       
             $.ajax({
-                url: `/roomtype/page/${id-1}0/${rowInPage}`,
+                url: `/room/pagebystaff/${id-1}0/${rowInPage}`,
                 method: viewMode[0],
                 headers: {
                     'Authorization':token,
                 },
                 dataType : "JSON",
                 success:  function(data)
-                {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/loginstaff')
-                    }
-                    console.log(data);
+                {                  
+     
                     let _stt = id-1 + "" + 0;
                     _stt = parseInt(_stt)
                     
                     displaypages(pages, id, lastPage);
-                    const row = parseInt(data.data.length);
-                    displayRoom(row, _stt, data.data)
+                    const row = parseInt(data.rooms.length);
+                    displayRoom(row,  data.rooms)
                 }
             })
         });

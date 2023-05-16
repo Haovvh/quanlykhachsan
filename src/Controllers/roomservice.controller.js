@@ -4,13 +4,13 @@ const { isDelete, rowInPage } = require('../utils/const');
 const {verifiedToken} = require('../Helpers/validateToken.helper')
 
 const getRoomService = async (request, res) => {
-    console.log("getRoomService")
+
     res.render('RoomService', {title : 'RoomServices', role:'admin'});
 }
 
 const postRoomService = async (request, response) => {
     try {
-		console.log("postRoomService")
+
 		const {roomservicename, price} = request.body;	
 		var query = `
 		INSERT INTO RoomServices 
@@ -25,7 +25,7 @@ const postRoomService = async (request, response) => {
 		});
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -35,8 +35,7 @@ const postRoomService = async (request, response) => {
 
 const putRoomServiceById = async (request, response) => {
     try {
-		console.log("putRoomService")
-		console.log("Edit ::: ");
+
 		const {id, roomservicename, price} = request.body;	
 
 		var query = `
@@ -55,7 +54,7 @@ const putRoomServiceById = async (request, response) => {
 		});
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -65,7 +64,6 @@ const putRoomServiceById = async (request, response) => {
 
 const deleteRoomServiceById = async (request, response) => {
     try {
-		console.log("postRoomService")
 		const {id}= request.body;
 		var query = `
 		UPDATE RoomServices
@@ -79,7 +77,7 @@ const deleteRoomServiceById = async (request, response) => {
 			success: true
 		});
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -90,7 +88,6 @@ const deleteRoomServiceById = async (request, response) => {
 const getRoomServiceById = async (request, response) => {
 	try {
 		const {id} = request.params;
-		console.log("fetchSingle")
 
 		var query = `SELECT *
 		FROM RoomServices 
@@ -104,7 +101,7 @@ const getRoomServiceById = async (request, response) => {
 		});
 
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -116,12 +113,17 @@ const searchRoomService = async (request, response) => {
 	try {
 		const {search} = request.body;
 
+		var searchWith = '';
+		if(search !== '') {
+			searchWith = ` AND roomservicename LIKE '%${search}%'  `;
+		}
+
 		var query = `SELECT *
 		FROM RoomServices 
-		WHERE roomservicename LIKE '%${search}%' AND isDelete = ${isDelete.false}`;
+		WHERE  isDelete = ? ` + searchWith;
 		const pool = mysql.createPool(configMysql);
 		
-		const roomService = await pool.query(query);
+		const roomService = await pool.query(query, isDelete.false);
 		response.json({
 			data:roomService[0],
 			success: true, 
@@ -129,7 +131,7 @@ const searchRoomService = async (request, response) => {
 		});
 
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false, 
@@ -141,7 +143,7 @@ const searchRoomService = async (request, response) => {
 const getAllRoomService = async (request, response) => {
     
     try {
-        console.log("fetch");
+
 			var query = `SELECT id, roomservicename, price
 			FROM RoomServices 
 			WHERE isDelete = ${isDelete.false}  ORDER BY id ASC`;
@@ -157,7 +159,7 @@ const getAllRoomService = async (request, response) => {
 			});
 
     } catch (error) {
-        console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -166,10 +168,10 @@ const getAllRoomService = async (request, response) => {
 }
 
 const getRoomServiceByIdFromTo = async (request, response) =>{
-	console.log("getRoomTypeByIdFromTo")
+
 	try {
 		const {id, rowinpage} = request.params;
-		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+
 			
 			var query = `SELECT *
 			FROM RoomServices 
@@ -188,7 +190,7 @@ const getRoomServiceByIdFromTo = async (request, response) =>{
 			
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false

@@ -51,6 +51,8 @@ app.use('/customertype', require('./Routes/customertype.route'));
 
 app.use('/room', require('./Routes/room.route'));
 
+app.use('/roomstaff', require('./Routes/roomstaff.route'));
+
 app.use('/roomtype', require('./Routes/roomtype.route'));
 
 app.use('/roomservice', require('./Routes/roomservice.route'));

@@ -1,9 +1,8 @@
 const { isDelete, statusRoom, statusBook, rowInPage } = require('../utils/const'); 
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
-const {verifiedToken} = require('../Helpers/validateToken.helper')
 const {decodeToken} = require('../Helpers/decodeToken.helper');
-const { user } = require('../config/mysql.config');
+const {verifiedToken, verifiedTokenByStaff} = require('../Helpers/validateToken.helper')
 
 
 const queryRoomServiceDetailByBookid =
@@ -21,37 +20,33 @@ const getBook = async (request, response) => {
 	response.render('Book', {title : 'Books'})
 }
 
-const getBookByRole = async (request, response) => {
-	let token = request.headers.authorization;
-    token = token.replace('Bearer ', '')
-	const role = decodeToken(token, process.env.KEY_JWTOKEN).role || '';
-	
-	if (role === 'staff') {
-		
-		response.render('Book', {title : 'Books',layout:'layoutstaff'})
-		return;
-	}
-	
-	response.render('Book', {title : 'Books', layout:"layout"})
-}
+
 
 const getAllBook = async (request, response) =>{
 	
 	try {
 			var queryBooks = `SELECT main.id,  cus.fullname, 
 			roo.roomname , main.statusBook, pay.paymentname  , main.checkindate, 
-			main.checkoutdate, main.totalmoney, sta.statusname 
+			main.checkoutdate, main.totalmoney, sta.statusname, bra.branchname
 			FROM Books main 
 			LEFT JOIN Bookdetails det ON (main.id = det.bookid) 
 			LEFT JOIN Rooms roo ON (main.roomid = roo.id)
 			LEFT JOIN Payments pay ON (main.paymentid = pay.id)
 			LEFT JOIN Customers cus ON (det.customerid = cus.id)
 			LEFT JOIN Statuss sta ON (sta.id = main.statusbook)
-			WHERE det.id = 1  AND main.isDelete = ${isDelete.false}  
-			ORDER BY main.checkindate DESC
+			LEFT JOIN Branchs bra on (roo.branchtype = bra.id)
+			WHERE det.id = 1  
+			AND main.isDelete = ${isDelete.false}  
+			ORDER BY roo.branchtype ASC, main.checkindate DESC
 			`; 
+
+
 			const pool = mysql.createPool(configMysql);
 			var books = await pool.query(queryBooks);
+			var branchs = await pool.query(`SELECT * 
+			FROM branchs 
+			WHERE isDelete = ?
+			ORDER BY id ASC`,[isDelete.false]);
 			books = books[0];
 			
 			for( let i = 0; i <books.length; i++ ) {
@@ -61,35 +56,85 @@ const getAllBook = async (request, response) =>{
 			await pool.end();			
 			response.json({
 				book: books,
+				branchs: branchs[0],
 				success: true, 
 				rowInPage: rowInPage
 			});
 			
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+		
 		response.json({
 			message: error.message,
 			success: false
 		})
 	}
 }
+
+const getAllBookByStaff = async (request, response) =>{
+	
+	try {
+		const branchtype = verifiedTokenByStaff(request).branchtype;
+		
+
+		var queryBooks = `SELECT main.id,  cus.fullname, 
+		roo.roomname , main.statusBook, pay.paymentname  , 
+		main.checkindate, 
+		main.checkoutdate, main.totalmoney, sta.statusname 
+		FROM Books main 
+		LEFT JOIN Bookdetails det ON (main.id = det.bookid) 
+		LEFT JOIN Rooms roo ON (main.roomid = roo.id)
+		LEFT JOIN Payments pay ON (main.paymentid = pay.id)
+		LEFT JOIN Customers cus ON (det.customerid = cus.id)
+		LEFT JOIN Statuss sta ON (sta.id = main.statusbook)		
+		WHERE det.id = 1  
+		AND roo.branchtype = ?
+		AND main.isDelete = ?  
+		ORDER BY main.checkindate DESC
+		`; 
+		const pool = mysql.createPool(configMysql);
+		var books = await pool.query(queryBooks, [branchtype, isDelete.false]);
+		books = books[0];
+			
+		for( let i = 0; i <books.length; i++ ) {
+			books[i].checkindate = books[i].checkindate.toLocaleString();
+			books[i].checkoutdate = books[i].checkoutdate.toLocaleString();
+		}
+		await pool.end();			
+		response.json({
+			book: books,
+			success: true, 
+			rowInPage: rowInPage
+		});
+			
+		
+	} catch (error) {
+		
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
+
 const getBookByIdFromTo = async (request, response) =>{
-	console.log("getAllBook")
+	
 	try {
 		const {id, rowinpage} = request.params;
 		
 			var queryBooks = `SELECT main.id,  cus.fullname, 
 			roo.roomname , main.statusBook, pay.paymentname  , main.checkindate, 
-			main.checkoutdate, main.totalmoney, sta.statusname 
+			main.checkoutdate, main.totalmoney, sta.statusname , bra.branchname
 			FROM Books main 
 			LEFT JOIN Bookdetails det ON (main.id = det.bookid) 
 			LEFT JOIN Rooms roo ON (main.roomid = roo.id)
 			LEFT JOIN Payments pay ON (main.paymentid = pay.id)
 			LEFT JOIN Customers cus ON (det.customerid = cus.id)
 			LEFT JOIN Statuss sta ON (sta.id = main.statusbook)
+			LEFT JOIN Branchs bra ON (roo.branchtype = bra.id)
 			WHERE det.id = 1  AND main.isDelete = ${isDelete.false}  
-			ORDER BY main.checkindate DESC
+			ORDER BY roo.branchtype ASC, main.checkindate DESC
 			LIMIT ? , ?
 			`; 
 			const pool = mysql.createPool(configMysql);
@@ -108,7 +153,7 @@ const getBookByIdFromTo = async (request, response) =>{
 			
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+		
 		response.json({
 			message: error.message,
 			success: false
@@ -116,8 +161,58 @@ const getBookByIdFromTo = async (request, response) =>{
 	}
 }
 
+const getBookByIdFromToByStaff = async (request, response) =>{
+
+	try {
+		const branchtype = verifiedTokenByStaff(request).branchtype;
+
+		const {id, rowinpage} = request.params;
+		
+			var queryBooks = `SELECT main.id,  cus.fullname, 
+			roo.roomname , main.statusBook, 
+			pay.paymentname  , main.checkindate, 
+			main.checkoutdate, main.totalmoney, sta.statusname 
+			FROM Books main 
+			LEFT JOIN Bookdetails det ON (main.id = det.bookid) 
+			LEFT JOIN Rooms roo ON (main.roomid = roo.id)
+			LEFT JOIN Payments pay ON (main.paymentid = pay.id)
+			LEFT JOIN Customers cus ON (det.customerid = cus.id)
+			LEFT JOIN Statuss sta ON (sta.id = main.statusbook)
+			WHERE det.id = 1  
+			AND roo.branchtype = ?
+			AND main.isDelete = ? 
+			ORDER BY main.checkindate DESC
+			LIMIT ? , ?
+			`; 
+			const pool = mysql.createPool(configMysql);
+			var books = await pool.query(queryBooks, [branchtype, isDelete.false, parseInt(id), parseInt(rowinpage)]);
+			books = books[0];
+			
+			for( let i = 0; i <books.length; i++ ) {
+				books[i].checkindate = books[i].checkindate.toLocaleString();
+				books[i].checkoutdate = books[i].checkoutdate.toLocaleString();
+			}
+			await pool.end();			
+			response.json({
+				book: books,
+				success: true
+			});
+			
+		
+	} catch (error) {
+		
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
+
+
+
 const getBookById = async (request, response) =>{
-	console.log("getBookById ===>")
+	
 	try {
 		const {id} = request.params;
 	
@@ -137,7 +232,7 @@ const getBookById = async (request, response) =>{
 		ORDER BY main.id ASC
 		`;
 		const queryBookDetail = `
-		SELECT main.*, cus.fullname, cus.phone, cus.citizenIdentityCard, cut.customertypename 
+		SELECT main.*, cus.fullname,  cus.citizenIdentityCard, cut.customertypename 
 		FROM BookDetails main
 		LEFT JOIN Customers cus on (main.customerid = cus.id)
 		LEFT JOIN Customertypes cut on (cus.customertype = cut.id)
@@ -172,7 +267,75 @@ const getBookById = async (request, response) =>{
 		
 	
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+		
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
+const getBookByIdAndStaff = async (request, response) =>{
+	
+	try {
+		const {id} = request.params;
+		const branchtype = verifiedTokenByStaff(request).branchtype;
+	
+	
+		const queryBook = `
+		SELECT main.*, roo.roomname, bde.*, rot.*, 
+		pay.paymentname, sta.statusname,
+		staf.username
+		FROM Books main
+		LEFT JOIN Rooms roo on (main.roomid = roo.id)
+		LEFT JOIN Payments pay on (main.paymentid = pay.id)
+		LEFT JOIN BookDetails bde on (main.id = bde.bookid)
+		LEFT JOIN RoomTypes rot ON (roo.roomtype = rot.id)
+		LEFT JOIN Statuss sta on (main.StatusBook = sta.id)
+		LEFT JOIN Staffs staf on (main.staffid = staf.id)
+		WHERE main.id = ? 
+		AND roo.branchtype =?
+		AND main.isDelete = ?
+		AND bde.id = 1
+		ORDER BY main.id ASC
+		`;
+		const queryBookDetail = `
+		SELECT main.*, cus.fullname,  cus.citizenIdentityCard, cut.customertypename 
+		FROM BookDetails main
+		LEFT JOIN Customers cus on (main.customerid = cus.id)
+		LEFT JOIN Customertypes cut on (cus.customertype = cut.id)
+		WHERE main.bookid =${id} AND main.isDelete = ${isDelete.false} 
+		ORDER BY main.id ASC
+		`;
+
+		const queryRoomServiceDetail = `
+		SELECT main.roomserviceid, roo.roomservicename, roo.price, main.quantity 
+		FROM RoomServiceDetails main
+		LEFT JOIN RoomServices roo on (main.roomserviceid = roo.id)
+		WHERE main.bookid = ${id} AND main.isDelete = ${isDelete.false} 
+		ORDER BY main.id ASC
+		`;
+		const pool = mysql.createPool(configMysql);
+		var books = await pool.query(queryBook, [id, branchtype, isDelete.false]);
+
+		const bookdetail = await pool.query(queryBookDetail);
+		const roomservicedetail = await pool.query(queryRoomServiceDetail);
+		await pool.end();
+		books = books[0];		
+		for( let i = 0; i <books.length; i++ ) {
+			books[i].checkindate = books[i].checkindate.toLocaleString();
+			books[i].checkoutdate = books[i].checkoutdate.toLocaleString();
+		}
+		response.json({
+			book: books, 
+			bookdetail: bookdetail[0],
+			roomservicedetail: roomservicedetail[0],
+			success: true
+		})
+		
+	
+	} catch (error) {
+	
 		response.json({
 			message: error.message,
 			success: false
@@ -181,14 +344,17 @@ const getBookById = async (request, response) =>{
 }
 
 const searchBook = async (request, response) =>{
-	console.log("getBoook ===>")
+
 	try {
 		const {search} = request.body;
-		 
+		var searchWith = '';
+		if(search !== '') {
+			searchWith = `AND  bra.branchname LIKE '%${search}%'  `;
+		}
 		const queryBook = `
 		SELECT main.id,  cus.fullname, 
 		roo.roomname , main.statusBook, pay.paymentname  , main.checkindate, 
-		main.checkoutdate, main.totalmoney, sta.statusname
+		main.checkoutdate, main.totalmoney, sta.statusname, bra.branchname
 		FROM Books main
 		LEFT JOIN Rooms roo on (main.roomid = roo.id)
 		LEFT JOIN Payments pay on (main.paymentid = pay.id)
@@ -196,13 +362,9 @@ const searchBook = async (request, response) =>{
 		LEFT JOIN Customers cus on (bde.customerid = cus.id)
 		LEFT JOIN RoomTypes rot ON (roo.roomtype = rot.id)
 		LEFT JOIN Statuss sta on (main.StatusBook = sta.id)
-		WHERE  cus.fullname LIKE '%${search}%' 
-		OR roo.roomname LIKE '%${search}%' 
-		OR sta.statusname LIKE '%${search}%' 		
-		AND main.isDelete = ?
-		AND bde.id = 1
-		ORDER BY main.checkindate DESC
-		`;
+		LEFT JOIN Branchs bra ON (roo.branchtype = bra.id)
+		WHERE  main.isDelete = ?
+		AND bde.id = 1  ` + searchWith + ` ORDER BY roo.branchtype ASC, main.checkindate DESC `;
 		const pool = mysql.createPool(configMysql);
 		var books = await pool.query(queryBook,[isDelete.false]);
 				
@@ -221,18 +383,72 @@ const searchBook = async (request, response) =>{
 		
 	
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+		
 		response.json({
 			message: error.message,
 			success: false
 		})
 	}
 }
-const postBook = async (request, response) =>{
-	console.log("postBook")
-	try {		
+
+const searchBookByStaff = async (request, response) =>{
+
+	try {
+		const branchtype = verifiedTokenByStaff(request).branchtype;
+
+		const {search} = request.body;
+		var searchWith = '';
+		if(search !== '') {
+			searchWith = `AND  cus.fullname LIKE '%${search}%'  `;
+		}
+
+		const queryBook = `
+		SELECT main.id,  cus.fullname, 
+		roo.roomname , main.statusBook, pay.paymentname  , 
+		main.checkindate, 
+		main.checkoutdate, main.totalmoney, sta.statusname
+		FROM Books main
+		LEFT JOIN Rooms roo on (main.roomid = roo.id)
+		LEFT JOIN Payments pay on (main.paymentid = pay.id)
+		LEFT JOIN BookDetails bde on (main.id = bde.bookid)
+		LEFT JOIN Customers cus on (bde.customerid = cus.id)
+		LEFT JOIN RoomTypes rot ON (roo.roomtype = rot.id)
+		LEFT JOIN Statuss sta on (main.StatusBook = sta.id)
+		WHERE main.isDelete = ? 
+		AND roo.branchtype = ?
+		AND bde.id = 1 ` + searchWith + ` ORDER BY main.checkindate DESC `;
+		const pool = mysql.createPool(configMysql);
+		var books = await pool.query(queryBook,[isDelete.false, branchtype]);
+				
+		await pool.end();
+		books = books[0];		
+		for( let i = 0; i <books.length; i++ ) {
+			books[i].checkindate = books[i].checkindate.toLocaleString();
+			books[i].checkoutdate = books[i].checkoutdate.toLocaleString();
+		}
 		
-		const { idroom, paymentid, customerid, 
+		response.json({
+			data: books, 
+			success: true, 
+			rowInPage: rowInPage
+		})
+		
+	
+	} catch (error) {
+
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
+const postBook = async (request, response) =>{
+
+	try {		
+		const branchtype = verifiedTokenByStaff(request).branchtype;
+		
+		const { roomid, paymentid, customerid, 
 			roomserviceid, quantityTemp, checkindate, checkoutdate, totalmoney} 
 			= request.body;
 
@@ -251,10 +467,11 @@ const postBook = async (request, response) =>{
 		const check = await pool.query(`
 		INSERT INTO Books (roomid, paymentid, checkoutdate, checkindate, totalmoney)	
 		VALUES (?, ?, ?, ?, ?) `, 
-		[idroom, paymentid, checkoutdate, checkindate, totalmoney]);
+		[roomid, paymentid, checkoutdate, checkindate, totalmoney]);
 		
-		await pool.query(`UPDATE Rooms SET status = ? WHERE id = ?`,
-		[statusRoom.DANGTHUE, idroom])
+		await pool.query(`UPDATE Rooms SET status = ? 
+		WHERE id = ? `,
+		[statusRoom.DANGTHUE, roomid])
 
 		bookidtemp = check[0].insertId;
 		
@@ -308,7 +525,7 @@ const postBook = async (request, response) =>{
 			}
 		}
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -316,11 +533,11 @@ const postBook = async (request, response) =>{
 	}
 }
 const putBook = async (request, response) =>{
-	console.log("putBook ===>>>>")
+
 	try {	
 		
 		
-		const {bookid, idroom, paymentid, customerid, roomserviceid, quantityTemp, checkoutdate, totalmoney} = request.body;
+		const {bookid, roomid, paymentid, customerid, roomserviceid, quantityTemp, checkoutdate, totalmoney} = request.body;
 		
 		if(!(customerid && customerid.length >0)) {
 			response.json({
@@ -362,7 +579,7 @@ const putBook = async (request, response) =>{
 			
 
 			await pool.query(`UPDATE Books SET roomid = ?, paymentid = ? , checkoutdate = ?, totalmoney = ?
-			WHERE id = ?`,[idroom, paymentid, checkoutdate, totalmoney, bookid]);
+			WHERE id = ?`,[roomid, paymentid, checkoutdate, totalmoney, bookid]);
 
 			const temp2 = await pool.query(`SELECT * FROM Books WHERE id = ?`, [bookid]);
 			
@@ -416,7 +633,7 @@ const putBook = async (request, response) =>{
 			}
 		} 
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -425,7 +642,7 @@ const putBook = async (request, response) =>{
 }
 
 const putBookSuccess = async (request, response) =>{
-	console.log("putBookSuccess ===>>>>")
+
 	try {
 		const {bookid, roomid, staffid } = request.body;
 		const queryBook = `UPDATE Books SET statusBook = ?,
@@ -444,7 +661,7 @@ const putBookSuccess = async (request, response) =>{
 		})
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -453,13 +670,13 @@ const putBookSuccess = async (request, response) =>{
 }
 
 const deleteBook = (request, response) =>{
-	console.log("deleteBook")
+
 }
 
 const loadBookData = async (request, response) =>{
 	
 	try {
-		console.log("loadBookData")
+
 
 		const queryRoom = `SELECT main.*, roo.roomtypename, roo.price 
 		FROM Rooms main 
@@ -491,7 +708,54 @@ const loadBookData = async (request, response) =>{
 		})
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
+		response.json({
+			message: error.message,
+			success: false
+		})
+	}
+}
+
+const loadBookDataByStaff = async (request, response) =>{
+	
+	try {
+
+		const branchtype = verifiedTokenByStaff(request).branchtype;
+
+		const queryRoom = `SELECT main.*, roo.roomtypename, roo.price 
+		FROM Rooms main 
+		LEFT JOIN Roomtypes roo ON (main.roomtype = roo.id)
+		WHERE main.branchtype = ?		
+		AND roo.isDelete = ? 
+		AND main.isDelete = ? 
+		`;
+		const queryPayment = `SELECT * FROM Payments WHERE  isDelete = ${isDelete.false}`;
+
+		const queryCustomer = `SELECT main.*, cus.customertypename 
+		FROM Customers main 
+		LEFT JOIN Customertypes cus ON (main.customertype = cus.id)
+		WHERE main.isDelete = ${isDelete.false} AND cus.isDelete = ${isDelete.false}`;
+
+		const queryRoomService = `SELECT * FROM RoomServices WHERE isDelete = ${isDelete.false}`;
+
+		const pool = mysql.createPool(configMysql);
+
+		const rooms = await pool.query(queryRoom, [branchtype,  isDelete.false, isDelete.false]);
+		const payments = await pool.query(queryPayment);
+		const customers = await pool.query(queryCustomer);
+		const roomservices = await pool.query(queryRoomService);
+		await pool.end();
+
+		response.json({
+			rooms: rooms[0],
+			payments: payments[0],
+			customers: customers[0],
+			roomservices:roomservices[0],
+			success: true
+		})
+		
+	} catch (error) {
+
 		response.json({
 			message: error.message,
 			success: false
@@ -501,9 +765,15 @@ const loadBookData = async (request, response) =>{
 
 
 module.exports = {
-    getBookById, postBook, putBook, 
-	deleteBook, getAllBook, loadBookData, 
-	getBook, putBookSuccess, getBookByIdFromTo,
-	searchBook, getBookByRole
+    getBookById,getBookByIdAndStaff,
+	postBook, putBook, 
+	deleteBook,  
+	loadBookData, loadBookDataByStaff,
+	getBook, putBookSuccess, 
+	getBookByIdFromTo, getBookByIdFromToByStaff,
+	searchBook, searchBookByStaff,
+	getAllBookByStaff,getAllBook
+
+
 };
 

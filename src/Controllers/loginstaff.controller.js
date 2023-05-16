@@ -4,7 +4,8 @@ const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const { generateTokens } = require('../Helpers/generateTokens.helper');
-const { response } = require('express');
+const {verifiedToken, verifiedTokenByStaff} = require('../Helpers/validateToken.helper')
+
 
 const getlogin = async (request, response) => {
     response.render('loginstaff');
@@ -14,11 +15,13 @@ const getlogin = async (request, response) => {
 const login = async (request, response) =>{
 	try {
         const {username, password} = request.body;	
-		console.log(username, password)
+		
 		const pool = mysql.createPool(configMysql);
 		const isExistUserName = await pool.query(`SELECT * 
 		FROM Staffs  		
-		WHERE username = ? LIMIT 1`,[username]);
+		WHERE username = ? 
+		AND isDelete = ?
+		LIMIT 1`,[username, isDelete.false]);
 		
 		if(!isExistUserName[0][0]) {
 			await pool.end();
@@ -28,8 +31,9 @@ const login = async (request, response) =>{
 			});
 			return;
 		}
+
 		const validatedPassword =  bcrypt.compareSync( password, isExistUserName[0][0].password );
-		
+
 		if(!validatedPassword) {
 			await pool.end();
 			response.json({
@@ -38,26 +42,68 @@ const login = async (request, response) =>{
 			});
 			return;
 		}
-		const token = await  generateTokens( isExistUserName[0][0].username, isExistUserName[0][0].password,
-			isExistUserName[0][0].role); 
+		const token = await  generateTokens(isExistUserName[0][0].id, isExistUserName[0][0].username, isExistUserName[0][0].password, 
+		isExistUserName[0][0].branchtype);
+
 		response.json({
 			message : 'Login success',
 			accessToken: token,
 			success: true,
-			role: isExistUserName[0][0].role,
-			id: isExistUserName[0][0].id
+			id: isExistUserName[0][0].id,
+			username: isExistUserName[0][0].username
 		});
 		
 	} catch (error) {
-		console.log("Error ", error.message)
+
 		response.json({
 			message:  error,
 			success: false
 		})
 	}
 }
-const changepass = async (resquet, response) => {
+const changepass = async (request, response) => {
+	try {
+		const {oldpassword, newpassword } = request.body;
+		const pool = mysql.createPool(configMysql);
+		const username = verifiedTokenByStaff(request).username
 
+		const isExistUserName = await pool.query(`
+		SELECT * 
+		FROM Staffs  		
+		WHERE username = ? 
+		AND isDelete = ?
+		LIMIT 1`,[username, isDelete.false]);
+		const validatedPassword =  bcrypt.compareSync( oldpassword, isExistUserName[0][0].password );
+
+		if(!validatedPassword) {
+			await pool.end();
+			response.json({
+				message : "Password wrong",
+				success: false
+			});
+			return;
+		}
+		const salt = bcrypt.genSaltSync();
+        const pass = bcrypt.hashSync( newpassword, salt );
+		
+		var query = `
+		UPDATE Staffs
+		SET password = ?		
+		WHERE  id = ? `;
+		
+		await pool.query(query,[pass, isExistUserName[0][0].id]);
+		await pool.end();
+		response.json({
+			message : 'Success',
+			success: true
+		});		
+		
+	} catch (error) {
+		response.json({
+			success: false,
+			message: error
+		})
+	}
 }
 
 module.exports = {

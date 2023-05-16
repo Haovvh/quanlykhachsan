@@ -16,12 +16,13 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped table-bordered" id="roomservice_data">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th scope="col">STT</th>
                             <th scope="col">Tên dịch vụ</th>
                             <th scope="col">Đơn giá (VND)</th>
+                            <th scope="col"></th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -44,11 +45,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3 input-group input-group-outline">
+                    <div class="mb-3 ">
                         <label class="form-label">Tên dịch vụ</label>
                         <input type="text" name="roomservicename" id="roomservicename" class="form-control roomservicename" required />
                     </div>
-                    <div class="mb-3 input-group input-group-outline">
+                    <div class="mb-3 ">
                         <label class="form-label">Đơn giá (VND)</label>
                         <input type="number" name="price" id="price" class="form-control  price" required/>
                     </div> 
@@ -172,18 +173,22 @@
                              
             }                    
           
-        document.querySelector('#roomservice_data tbody').innerHTML = html;
+        document.querySelector('#dataTable tbody').innerHTML = html;
                  
     }
    
 
     $(document).ready( function(){
     
+        if(user.username !== "admin") {            
+            window.location.assign('/staff/login')
+        }
+    
         load_data();
     
         function load_data()
         {            
-            console.log("Load_data");
+
             $.ajax({
                 url: '/roomservice/all',
                 headers: {
@@ -193,11 +198,7 @@
                 dataType : "JSON",
                 success:function( data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
-                    console.log(data)
+
                     if (data.success) {
                         rowInPage = data.rowInPage
                     }
@@ -212,7 +213,7 @@
                         } else {
                             row = data.data.length
                         }
-                        console.log(pages, current, lastPage, row, _stt, data.data)
+                        
                         displaypages(pages, current, lastPage);
                         displayRoom(row, _stt, data.data)
                         
@@ -224,7 +225,7 @@
         }
     
         $('#addRoomService').click(function(){
-            console.log("addRoomService")
+
 
             $('#dynamicModalTitle').text('Add RoomType');
     
@@ -242,7 +243,7 @@
         $('#roomServiceForm').on('submit', function(event){
     
             event.preventDefault();
-            console.log(" index mode == >", indexMode)
+
     
             $.ajax({
                 url:'/roomservice',
@@ -257,10 +258,7 @@
                 },
                 success:function(data)
                 { 
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
+                    
                     if (data.success) {
                         $('#actionButton').attr('disabled', false);
 
@@ -283,7 +281,7 @@
         });
         
         $(document).on('click', '.edit', function(){
-            console.log("Editt ::::")
+
     
             var id = $(this).data('id');
     
@@ -298,10 +296,7 @@
                 dataType:"JSON",
                 success:function(data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
+                    
                     if(data.success) {
                         $('#dynamicModalTitle').text('Edit Data');
     
@@ -311,7 +306,7 @@
                 
                         $('#actionModal').modal('show');
                         const temp = data.data;
-                        console.log("Data::::", data);
+  
                         $('#roomservicename').val(temp.roomservicename);
                         $('#price').val(temp.price);
                         $('#id').val(temp.id);
@@ -336,11 +331,7 @@
                 dataType : "JSON",
                 success:  function(data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
-                    console.log(data);
+
                     let _stt = id-1 + "" + 0;
                     _stt = parseInt(_stt)
                     
@@ -364,22 +355,16 @@
                 dataType : "JSON",
                 success:  function( data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
-                    console.log(data)
+
                     if(data.data && data.data.length > 0) {
                         pages = Math.ceil(data.data.length/rowInPage)
                         const current = 1;
                         lastPage = Math.ceil(data.data.length/rowInPage)
                         const _stt = 0;
-                        var row = 0;
+                        var row = rowInPage;
                         if(data.data.length < rowInPage){
                             row = data.data.length;
-                        } else {
-                            row = rowInPage;
-                        }
+                        } 
                         displaypages(pages, current, lastPage);
                         displayRoom(row, _stt, data.data)
                     } else {
@@ -406,10 +391,7 @@
                     dataType:"JSON",
                     success:function(data)
                     {
-                        if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
+                        
                         if(data.success){
                             document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
                             load_data();

@@ -3,6 +3,7 @@ const { getGender, getGenderByIdFromTo, searchGender, getAllGender , getGenderBy
 = 
 require('../Controllers/gender.controller');
 const {validateToken} = require('../Helpers/validateToken.helper');
+const {validateTokenRoleAdmin} = require('../Helpers/validateTokenRoleAdmin.helper')
 const router = Router();
 
     router.get('/', getGender);
@@ -10,10 +11,10 @@ const router = Router();
     router.get('/:id',validateToken, getGenderById);
     router.get('/page/:id/:rowinpage',validateToken, getGenderByIdFromTo); 
     
-    router.post('/',validateToken, postGender);
+    router.post('/',validateTokenRoleAdmin, postGender);
     router.post('/search',validateToken, searchGender);
-    router.put('/',validateToken, putGenderById);
-    router.delete('/', validateToken,deleteGenderById);
+    router.put('/',validateTokenRoleAdmin, putGenderById);
+    router.delete('/', validateTokenRoleAdmin,deleteGenderById);
 
 module.exports = router;
 

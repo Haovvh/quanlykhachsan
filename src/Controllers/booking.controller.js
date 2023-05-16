@@ -28,7 +28,7 @@ const getBook = async (request, response) => {
 			rowInPage: rowInPage
 		});
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -37,7 +37,7 @@ const getBook = async (request, response) => {
 }
 
 const getAllBook = async (request, response) =>{
-	console.log("getAllBooking ====>")
+
 	try {
 			var queryBooks = `SELECT main.id,  cus.fullname, 
 			roo.roomname , pay.paymentname  , main.checkindate, 
@@ -65,7 +65,7 @@ const getAllBook = async (request, response) =>{
 			
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -73,7 +73,7 @@ const getAllBook = async (request, response) =>{
 	}
 }
 const getBookById = async (request, response) =>{
-	console.log("getBookingById ===>")
+
 	try {
 		const {id} = request.params;
 	
@@ -89,7 +89,7 @@ const getBookById = async (request, response) =>{
 		ORDER BY main.id ASC
 		`;
 		const queryBookDetail = `
-		SELECT main.*, cus.fullname, cus.phone, 
+		SELECT main.*, cus.fullname, 
 		cus.citizenIdentityCard, cut.customertypename FROM BookDetails main
 		LEFT JOIN Customers cus on (main.customerid = cus.id)
 		LEFT JOIN Customertypes cut on (cus.customertype = cut.id)
@@ -121,7 +121,7 @@ const getBookById = async (request, response) =>{
 		
 	
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false

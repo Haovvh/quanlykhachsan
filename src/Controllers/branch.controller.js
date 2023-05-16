@@ -11,16 +11,16 @@ const getBranch = async (request, response) => {
 
 
 const getAllBranch = async (request, response) => {
-    console.log("getAllBranch")
+
     try {		
 		var query = `SELECT *
 		FROM Branchs 
 		WHERE isDelete = ${isDelete.false}  
-		ORDER BY id ASC`;  
+		ORDER BY id DESC`;  
 		const pool = mysql.createPool(configMysql);
 		Branchs = await pool.query(query);
 		pool.end();
-		console.log(Branchs[0])
+
 		if(Branchs[0].length > 0){
 			
 			response.json({
@@ -30,7 +30,7 @@ const getAllBranch = async (request, response) => {
 			})
 		}
     } catch (error) {
-        console.log("Error :::", error.message);
+
 		response.json({
 			message: "Error", 
 			success :false
@@ -53,7 +53,7 @@ const getBranchById = async (request, response) =>{
 			success: true
 		})
 	} catch (error) {
-		console.log("Error ", error.message)
+
 		response.json({
 			message:  "error",
 			success: false
@@ -64,13 +64,16 @@ const getBranchById = async (request, response) =>{
 const searchBranch = async (request, response) =>{
 	try {
 		const {search} = request.body
-
+		var searchWith = '';
+		if(search !== '') {
+			searchWith = ` AND Branchname LIKE '%${search}%'  `;
+		}
 		var query = `SELECT *
 		FROM Branchs 
-		WHERE Branchname LIKE '%${search}%' 
-		AND isDelete = ${isDelete.false} `;
+		WHERE  isDelete = ?
+		 ` + searchWith;
 		const pool = mysql.createPool(configMysql);
-		const Branch = await pool.query(query);
+		const Branch = await pool.query(query, [isDelete.false]);
 		pool.end();
 		response.json({
 			data:Branch[0],
@@ -78,7 +81,7 @@ const searchBranch = async (request, response) =>{
 			rowInPage: rowInPage
 		})
 	} catch (error) {
-		console.log("Error ", error.message)
+
 		response.json({
 			message:  "error",
 			success: false
@@ -88,7 +91,6 @@ const searchBranch = async (request, response) =>{
 
 const postBranch = async (request, response) =>{
 	try {
-		console.log("postBranch")
 		
         const {branchname} = request.body;	
 		var query = `
@@ -113,7 +115,7 @@ const postBranch = async (request, response) =>{
 		});
 		
 	} catch (error) {
-		console.log("Error ", error.message)
+
 		response.json({
 			message:  error,
 			success: false
@@ -123,7 +125,7 @@ const postBranch = async (request, response) =>{
 
 const putBranchById = async(request, response) =>{
 	try {
-		validateTokenRoleAdmin();
+		
 		const {id, branchname} = request.body;	
 
 		var query = `
@@ -140,7 +142,7 @@ const putBranchById = async(request, response) =>{
 		});
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -151,9 +153,8 @@ const putBranchById = async(request, response) =>{
 const deleteBranchById = async(request, response) =>{
 	try {
 		
-		console.log(request.body);
+
 		const {id} = request.body;
-		console.log("deleteBranchById ==> ", id)
         var query = `
 		UPDATE Branchs
 		SET isDelete = ${isDelete.true}
@@ -167,7 +168,7 @@ const deleteBranchById = async(request, response) =>{
 			success: true
 		});
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -176,10 +177,10 @@ const deleteBranchById = async(request, response) =>{
 }
 
 const getBranchByIdFromTo = async (request, response) =>{
-	console.log("getBranchByIdFromTo")
+
 	try {
 		const {id, rowinpage} = request.params;
-		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+
 			
 			var query = `SELECT *
 			FROM Branchs 
@@ -198,7 +199,7 @@ const getBranchByIdFromTo = async (request, response) =>{
 			
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false

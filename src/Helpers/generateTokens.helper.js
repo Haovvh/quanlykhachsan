@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
 
-const generateTokens =  async ( username, password, role ) => {
+const generateTokens =  async (id, username, password, branchtype = 0 ) => {
 
     
     return new Promise( ( resolve, reject ) => {
         
-        const payload = { username, password, role };
+        const payload = { id, username, password, branchtype };
 
         jwt.sign( payload , process.env.KEY_JWTOKEN, { 
             expiresIn: '24h'

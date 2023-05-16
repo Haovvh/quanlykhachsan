@@ -22,18 +22,13 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3 ">
-                        <label class="form-label">username</label>
-                        <input type="text" name="username" id="username" class="form-control username" required />
+                        <label class="form-label">Old Password</label>
+                        <input type="password" name="oldpassword" id="oldpassword" class="form-control oldpassword" required />
                     </div>
-                    <div class="mb-3 input-group input-group-outline">
-                        <label class="form-label">Password</label>
-                        <input type="password" name="password" id="password" class="form-control password" required/>
-                    </div> 
-                    <div class="mb-3 input-group input-group-outline">
-                        <label class="form-label">Confirm Password</label>
-                        <input type="password" name="confirmpassword" id="confirmpassword" class="form-control confirmpassword" required/>
-                    </div>      
-                                    
+                    <div class="mb-3 ">
+                        <label class="form-label">New Password</label>
+                        <input type="password" name="newpassword" id="newpassword" class="form-control newpassword" required/>
+                    </div>        
                 </div>
                 <div class="modal-footer">                    
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -44,10 +39,59 @@
     </div>
 </div>
 <script>
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    var token = "";
+    if (user && user.accessToken) {        
+        token = `Bearer ${user.accessToken}`
+               
+    }
     
-    $(document).ready( function(){            
-        
+    $(document).ready( function(){      
+
+        $('#changepass').click(function(){
+            $('#dynamicModalTitle').text('Change Password');
+    
+            $('#sample_form')[0].reset();
+    
+            $('#action').val('Add');
+    
+            $('#actionButton').text('Add');
+    
+            $('#actionModal').modal('show');
+    
+        });
+
+        $('#sample_form').on('submit', function(event){    
+            event.preventDefault();
+            $.ajax({
+                url:'/admin/changepass',
+                method:"PUT",
+                headers: {
+                    'Authorization':token
+                },
+                data:$('#sample_form').serialize(),
+                dataType:"JSON",
+                beforeSend:function(){
+                    $('#actionButton').attr('disabled', 'disabled');
+                },
+                success:function(data)
+                {                    
+
+                    if(data && data.success){
+                        alert("Đổi mật khẩu thành công")
+                        window.location.assign('/admin/login')
+                    } else {
+                        alert("Wrong password")
+                    }
+                    
+                }
+            });
+
+        });
+
+    
         
     });
     
-    </script>
+</script>

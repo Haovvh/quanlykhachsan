@@ -13,10 +13,12 @@ const statusBook = {
     DATHANHTOAN: 'DATHANHTOAN'
 }
 const rowInPage = 10;
+const rowRoomPage = 12
 
 module.exports = {
     isDelete,
     statusRoom,
     statusBook, 
-    rowInPage
+    rowInPage,
+    rowRoomPage
 }

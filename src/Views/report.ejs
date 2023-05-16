@@ -8,31 +8,38 @@
                 <div class="row align-items-center">
                     <div class="col">
                         <div class="row">                            
-                            <div class="col-3">
-                                <label class="form-label">Ngày Thuê</label>                                
+                            <div class="col">
+                                <label class="form-label">Từ Ngày</label>                                
                             </div>
-                            <div class="col-3">
-                                <label class="form-label">Ngày Trả</label>                                                        
+                            <div class="col">
+                                <label class="form-label">Đến Ngày</label>                                                        
                             </div>
-                            <div class="col-2">
+                            <div class="col">
+                                <label class="form-label">Chi Nhánh</label> 
+                            </div>
+                            <div class="col">
 
                             </div>
-                            <div class="col-3">
+                            <div class="col">
                                 <label class="form-label"><h4>Tổng tiền</h4></label>                                                        
                             </div>
                         </div>
                         <div class="row">                          
                             
-                            <div class="col-3">
+                            <div class="col">
                                 <input type="date" class="form-control checkdatefrom"  id="checkdatefrom" name="checkdatefrom" required>
                             </div>
-                            <div class="col-3">
+                            <div class="col">
                                 <input type="date" class="form-control checkdateto"  id="checkdateto" name="checkdateto" required>
                             </div>
-                            <div class="col-2">
+                            <div class="col">
+                                <select name="branchtype" id="branchtype" class="form-select branchtype">
+                                </select>
+                            </div>
+                            <div class="col">
                                 <button type="button" id="search" class="btn btn-success search">Tìm kiếm</button>
                             </div>
-                            <div class="col-3">
+                            <div class="col">
                                 <input type="text" class="form-control totalmoney"  id="totalmoney" name="totalmoney" readonly>
                             </div>
                         </div>                 
@@ -42,16 +49,17 @@
         </form> 
         <div class="card-body ">
             <div class="table-responsive">
-                <table class="table table-striped table-bordered" id="bookheaderdata">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th scope="col">STT</th>
-                            <th scope="col">Phòng</th>
+                            <th scope="col">Chi Nhánh </th>
                             <th scope="col">Thanh toán</th>
                             <th scope="col">Ngày Thuê</th>
                             <th scope="col">Ngày Trả</th>
                             <th scope="col">Trạng Thái</th>
                             <th scope="col">Thành tiền (VND)</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -70,8 +78,10 @@
     var lastPage = 1;
     var pages = 1;
     const statusBook = ["CHUATHANHTOAN", "DATHANHTOAN"]
+    const statusButton = ["No", "Success"]
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
-
+    var _branchtype =`
+    `;
     const user = JSON.parse(localStorage.getItem('user'));
     var token = "";
     if (user && user.accessToken) {
@@ -155,17 +165,17 @@
                 html += `
                     <tr>
                         <td>`+ _stt +`</td>
-                        <td>`+bookRow.roomname+`</td>
+                        <td>`+bookRow.branchname+`</td>
                         <td>`+bookRow.paymentname+`</td>
                         <td>`+bookRow.checkindate+`</td>
                         <td>`+bookRow.checkoutdate+`</td>`;
-                        if(bookRow.statusBook === statusBook[1]){
-                            html+= `<td style="background-color: green;">`+bookRow.statusname+`</td>`
-                        } else if(bookRow.statusBook === statusBook[0]) {
-                            html+= `<td style="background-color: orange;">`+bookRow.statusname+`</td>`
+                        if(bookRow.statusBook === statusBook[0]) {
+                            html += `<td class="text-center"><label class=" btn-warning">${statusButton[0]}</label></td>`;
+                        } if(bookRow.statusBook === statusBook[1]) {
+                            html += `<td class="text-center" ><label class="  btn-success">${statusButton[1]}</label></td>`;
                         }
-                        html +=`
-                            <td>`+money+`</td>
+                        html += `                           
+                        <td>`+money+`</td>
                             <td>
                                 <button type="button" class="btn btn-warning btn-sm editbook" data-id="`+bookRow.id+`">
                                     View
@@ -174,19 +184,56 @@
                             </tr>
                             `;
             }
-        document.querySelector('#bookheaderdata tbody').innerHTML = html;   
+        document.querySelector('#dataTable tbody').innerHTML = html;   
                  
     }
    
 
 
-    $(document).ready( function(){    
+    $(document).ready( function(){   
+
+        if(user.username !== "admin") {            
+            window.location.assign('/staff/login')
+        }
+        load_data();    
+        function load_data() {
+            $.ajax({
+                url: '/branch/all',
+                method:viewMode[0],
+                headers: {
+                    'Authorization':token
+                },
+                dataType : "JSON",
+                success:function( data){ 
+
+                    _branchtype =``;
+                    
+                    if(data.success && data.data) {
+                        for(let index = 0 ; index <data.data.length  ; index++) {
+                            let _index = index + 1;
+                            _branchtype = `<option value="` + data.data[index].id+`">` 
+                                + data.data[index].branchname + `</option>
+                            ` + _branchtype;
+                        } 
+
+                        _branchtype += `
+                        <option selected="selected" value="all"> All </option>
+                        `; 
+                        document.querySelector('#bookingform div form div div div div div .branchtype').innerHTML = _branchtype;
+                    }
+                }
+            })
+
+        }
+
         $(document).on('click', '.search', function(){  
             let checkdatefrom = document.getElementById("checkdatefrom").value;
             let checkdateto = document.getElementById("checkdateto").value; 
+            let branchtype = document.getElementById("branchtype").value;
+            
             if(checkdatefrom && checkdateto) {
                 $.ajax({
-                url: `/report/${checkdatefrom}/${checkdateto}`,
+                url: `/report/admin/${branchtype}/${checkdatefrom}/${checkdateto}`,
                 headers: {
                     'Authorization':token
                 },
@@ -194,11 +241,8 @@
                 dataType : "JSON",
                 success:  function( data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
-                    console.log(data)
+                    
+
                     
                     if(data.book.length > 0 && data.success) {
                         rowInPage = data.rowInPage
@@ -208,9 +252,13 @@
                         const current = 1;
                         lastPage = Math.ceil(data.book.length/rowInPage)
                         const _stt = 0;
+                        let row = data.book.length;
+                        if(row > rowInPage) {
+                            row = rowInPage
+                        }
 
                         displaypages(pages, current, lastPage);
-                        displayBook(rowInPage, _stt, data.book)
+                        displayBook(row, _stt, data.book)
                     } else {
                         alert("Dữ liệu tìm kiếm không có. Vui lòng kiểm tra lại")
                     }
@@ -233,20 +281,24 @@
                 dataType : "JSON",
                 success:  function( data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
-                    console.log("data ===> ",data)
+                    
+
                     let _stt = id-1 + "" + 0;
                     _stt = parseInt(_stt)
-                    console.log(data);
+
                     displaypages(pages, id, lastPage);
                     const row = parseInt(data.book.length);
                     displayBook(row, _stt, data.book)
                 }
             })
         });
+    
+        $(document).on('click', '.editbook', function(){
+            
+            var id = $(this).data('id');
+            window.open(`/invoice/${id}`)
+        });
+    
     });
 
     

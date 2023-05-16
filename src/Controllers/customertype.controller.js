@@ -5,12 +5,12 @@ const mysql = require('mysql2/promise');
 const {verifiedToken} = require('../Helpers/validateToken.helper')
 
 const getCustomerType = async (request, res) => {
-    console.log("getCustomerType")
+
     res.render('CustomerType', {title : 'CustomerTypes', role:'admin'});
 }
 
 const getCustomerTypeById = async (request, response) => {
-    console.log("getCustomerTypeById")
+
     try {
 		var {id} = request.params;
 
@@ -27,7 +27,7 @@ const getCustomerTypeById = async (request, response) => {
 		
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -36,15 +36,19 @@ const getCustomerTypeById = async (request, response) => {
 }
 
 const searchCustomerType = async (request, response) => {
-    console.log("searchCustomerType")
-    try {
-		var {search} = request.body;
 
+    try {
+		const {search} = request.body;
+		var searchWith = '';
+		if(search !== '') {
+			searchWith = ` AND main.customertypename LIKE '%${search}%'  `;
+		}
 		var query = `SELECT *
 		FROM CustomerTypes main
-		WHERE main.customertypename LIKE '%${search}%'`;
+		WHERE  main.isDelete = ?
+		` + searchWith;
 		const pool = mysql.createPool(configMysql);
-		const customertype = await pool.query(query);
+		const customertype = await pool.query(query, [isDelete.false]);
 		await pool.end();
 		response.json({
 			data: customertype[0],
@@ -54,7 +58,7 @@ const searchCustomerType = async (request, response) => {
 		
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -63,10 +67,10 @@ const searchCustomerType = async (request, response) => {
 }
 
 const getCustomerTypeByIdFromTo = async (request, response) =>{
-	console.log("getCustomerByIdFromTo")
+
 	try {
 		const {id, rowinpage} = request.params;
-		console.log("IDD == >>", id ,  "  row ===>", rowinpage)
+
 			
 			var query = `SELECT *
 			FROM CustomerTypes 
@@ -84,7 +88,7 @@ const getCustomerTypeByIdFromTo = async (request, response) =>{
 			
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -93,7 +97,7 @@ const getCustomerTypeByIdFromTo = async (request, response) =>{
 }
 
 const postCustomerType = async (request, response) => {
-    console.log("postCustomerType")
+
     try {
 		const {customertypename} = request.body;	
 		var query = `
@@ -109,7 +113,7 @@ const postCustomerType = async (request, response) => {
 		});
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -117,9 +121,9 @@ const postCustomerType = async (request, response) => {
 	}
 }
 const putCustomerTypeById = async (request, response) => {
-    console.log("putCustomerTypeById")
+
     try {
-		console.log("Edit ::: ");
+
 		const {id, customertypename} = request.body;	
 		var query = `
 		UPDATE CustomerTypes
@@ -136,7 +140,7 @@ const putCustomerTypeById = async (request, response) => {
 
 		
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -144,7 +148,7 @@ const putCustomerTypeById = async (request, response) => {
 	}
 }
 const deleteCustomerTypeById = async (request, response) => {
-    console.log("deleteCustomerTypeById")
+
     try {
 		var id = request.body.id;
 
@@ -161,7 +165,7 @@ const deleteCustomerTypeById = async (request, response) => {
 			success: true
 		});
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false
@@ -170,7 +174,7 @@ const deleteCustomerTypeById = async (request, response) => {
 }
 
 const getAllCustomerType = async (request, response) => {
-    console.log("CustomerType ::::::::");
+
     try {
 
 		var query = `SELECT id, customertypename
@@ -187,7 +191,7 @@ const getAllCustomerType = async (request, response) => {
 		});				
 
     } catch (error) {
-        console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false

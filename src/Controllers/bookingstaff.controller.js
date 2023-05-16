@@ -26,7 +26,7 @@ const getBookingByStaff = async (request, response) => {
 			rowInPage: rowInPage
 		});
 	} catch (error) {
-		console.log("Error ::: ", error.message);
+
 		response.json({
 			message: error.message,
 			success: false

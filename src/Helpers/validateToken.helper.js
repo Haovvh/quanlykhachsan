@@ -5,7 +5,7 @@ const validateToken = ( request, response, next ) => {
     
     let authHeader = request.headers.authorization;
     authHeader = authHeader.replace('Bearer ', '')
-
+    
     if( !authHeader ){
         return response.json({
             success: false,
@@ -18,6 +18,7 @@ const validateToken = ( request, response, next ) => {
         const verified  = jwt.verify( authHeader, process.env.KEY_JWTOKEN );
         
         if(verified) {
+            console.log("next")
             next()            
         }else{
             // Access Denied
@@ -36,9 +37,12 @@ const validateToken = ( request, response, next ) => {
         });
     }
 }
-const verifiedToken = (token) => {
-    if(token) {
-        return jwt.verify( token, process.env.KEY_JWTOKEN );
+const verifiedTokenByStaff = (request) => {
+    
+    if(request && request.headers && request.headers.authorization) {
+        let authHeader = request.headers.authorization;
+        authHeader = authHeader.replace('Bearer ', '')
+        return jwt.verify( authHeader, process.env.KEY_JWTOKEN );
     }
     return "";
     
@@ -46,5 +50,5 @@ const verifiedToken = (token) => {
 
 module.exports = {
     validateToken,
-    verifiedToken
+    verifiedTokenByStaff
 }

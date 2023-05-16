@@ -16,7 +16,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped table-bordered" id="roomtype_data">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th scope="col">STT</th>
@@ -50,13 +50,13 @@
                         <label class="form-label">Loại phòng</label>
                         <input type="text" name="roomtypename" id="roomtypename" class="form-control roomtypename" required />
                     </div>
-                    <div class="mb-3 input-group input-group-outline">
+                    <div class="mb-3 ">
                         <label class="form-label">Đơn giá</label>
-                        <input type="number" name="price" id="price" class="form-control price" required/>
+                        <input type="number" min="1" name="price" id="price" class="form-control price" required/>
                     </div>       
-                    <div class="mb-3 input-group input-group-outline">
+                    <div class="mb-3 ">
                         <label class="form-label">Số lượng khách tối đa</label>
-                        <input type="number" name="maxcustomer" id="maxcustomer" class="form-control maxcustomer" required/>
+                        <input type="number" min="1" name="maxcustomer" id="maxcustomer" class="form-control maxcustomer" required/>
                     </div>                 
                 </div>
                 <div class="modal-footer">
@@ -79,6 +79,7 @@
     var indexMode = "GET";
 
     const user = JSON.parse(localStorage.getItem('user'));
+    
     var token = "";
     if (user && user.accessToken) {
         
@@ -177,35 +178,20 @@
                              
             }                    
           
-        document.querySelector('#roomtype_data tbody').innerHTML = html;                 
+        document.querySelector('#dataTable tbody').innerHTML = html;                 
     }
    
 
     $(document).ready( function(){
-        load_index();
-        function load_index()
-        {           
-            console.log("loadindex")
-            $.ajax({
-                
-                url: '/roomtype',
-                method: viewMode[0],
-                headers: {
-                    'Authorization':token
-                },
-                dataType : "JSON",
-                success:function( data) { 
-                    
-                }
-            });
+        if(user.username !== "admin") {            
+            window.location.assign('/staff/login')
         }
-    
     
         load_data();
     
         function load_data()
         {           
-            console.log("load_data")
+            
             $.ajax({
                 
                 url: '/roomtype/all',
@@ -215,10 +201,7 @@
                 },
                 dataType : "JSON",
                 success:function( data) { 
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }  
+                      
                     if(data.success && data.data.length > 0) {
                         rowInPage = data.rowInPage
                         pages = Math.ceil(data.data.length/rowInPage)
@@ -243,7 +226,7 @@
     
         $('#add_data').click(function(){
             indexMode = viewMode[1];
-            console.log("add_data")
+
 
             $('#dynamicModalTitle').text('Add RoomType');
     
@@ -274,10 +257,6 @@
                 },
                 success:function(data)
                 {
-                    if(data && data.success === false ) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    } 
                     if(data && data.success){
                         $('#actionButton').attr('disabled', false);
 
@@ -348,11 +327,7 @@
                 dataType : "JSON",
                 success:  function(data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    } 
-                    console.log(data);
+
                     let _stt = id-1 + "" + 0;
                     _stt = parseInt(_stt)
                     

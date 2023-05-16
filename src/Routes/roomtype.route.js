@@ -11,6 +11,7 @@ const {
     getRoomTypeByIdFromTo
 } = require('../Controllers/roomtype.controller');
 
+const {validateTokenRoleAdmin} = require('../Helpers/validateTokenRoleAdmin.helper')
 
 const {validateToken} = require('../Helpers/validateToken.helper')
 const router = Router();
@@ -18,10 +19,10 @@ const router = Router();
     router.get('/',getRoomType);
     router.get('/all', validateToken, getAllRoomType);
     router.get('/:id',validateToken, getRoomTypeById);
-    router.get('/page/:id/:rowinpage',validateToken, getRoomTypeByIdFromTo);
-    router.post('/',validateToken, postRoomType);
-    router.post('/search',validateToken, searchRoomType);
-    router.put('/',validateToken, putRoomTypeById);
-    router.delete('/',validateToken, deleteRoomTypeById);
+    router.get('/page/:id/:rowinpage',validateTokenRoleAdmin, getRoomTypeByIdFromTo);
+    router.post('/',validateTokenRoleAdmin, postRoomType);
+    router.post('/search',validateTokenRoleAdmin, searchRoomType);
+    router.put('/',validateTokenRoleAdmin, putRoomTypeById);
+    router.delete('/',validateTokenRoleAdmin, deleteRoomTypeById);
 
 module.exports = router;

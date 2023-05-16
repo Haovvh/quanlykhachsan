@@ -18,11 +18,12 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped table-bordered" id="gender_data">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th scope="col">STT</th>
-                            <th scope="col">Gender Name</th>                            
+                            <th scope="col">Gender Name</th>      
+                            <th></th>                      
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -45,7 +46,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3 input-group input-group-outline">
+                    <div class="mb-3 ">
                         <label class="form-label">Gender Name</label>
                         <input type="text" name="gendername" id="gendername" class="form-control gendername" required/>
                     </div>
@@ -165,18 +166,21 @@
                              
             }                    
           
-        document.querySelector('#gender_data tbody').innerHTML = html;
+        document.querySelector('#dataTable tbody').innerHTML = html;
                  
     }
    
     $(document).ready( function(){
     
-        
+        if(user.username !== "admin") {            
+            window.location.assign('/staff/login')
+        }
+    
         load_data();
     
         function load_data()
         {            
-            console.log("Load_data");
+
             $.ajax({
                 url: '/gender/all',
                 method: viewMode[0],
@@ -187,10 +191,7 @@
                 success:function( data)
                 {                    
                     var html = ''; 
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
+                    
                     if(data.data && data.data.length > 0 && data.success) {
                         rowInPage = data.rowInPage
                         pages = Math.ceil(data.data.length/rowInPage)
@@ -213,7 +214,7 @@
         }
     
         $('#add_data').click(function(){
-            console.log("add_data")
+
 
             $('#dynamicModalTitle').text('Add Gender');
     
@@ -231,7 +232,7 @@
         $('#sample_form').on('submit', function(event){
     
             event.preventDefault();
-            console.log("index mode  === >", indexMode)
+
             $.ajax({
                 url:'/gender',
                 method: indexMode,
@@ -245,10 +246,7 @@
                 },
                 success:function(data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
+                    
                     $('#actionButton').attr('disabled', false);
                     document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
     
@@ -267,7 +265,7 @@
         });
         
         $(document).on('click', '.edit', function(){
-            console.log("Editt ::::")    
+
             var id = $(this).data('id');
             
     
@@ -280,10 +278,7 @@
                 dataType:"JSON",
                 success:function(data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
+                    
                     if(data.success) {
                         const temp = data.data;
                         $('#dynamicModalTitle').text('Edit Data');
@@ -294,7 +289,7 @@
                 
                         $('#actionModal').modal('show');
                         indexMode = viewMode[2];
-                        console.log("Data::::", data);
+
                         $('#gendername').val(temp.gendername);
                         $('#id').val(temp.id);
                     } else {
@@ -318,11 +313,7 @@
                 dataType : "JSON",
                 success:  function(data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
-                    console.log(data);
+                    
                     let _stt = id-1 + "" + 0;
                     _stt = parseInt(_stt)
                     
@@ -347,11 +338,7 @@
                 dataType : "JSON",
                 success:  function( data)
                 {
-                    if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
-                    console.log(data)
+     
                     if(data.data && data.data.length > 0) {
                         pages = Math.ceil(data.data.length/rowInPage)
                         const current = 1;
@@ -389,10 +376,7 @@
                     dataType:"JSON",
                     success:function(data)
                     {
-                        if(data && data.success === false && data.statusCode === 400) {
-                        alert("Vui lòng đăng nhập lại")
-                        window.location.assign('/login')
-                    }
+                        
                         if(data.success) {
                             document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';
                         
