@@ -45,27 +45,27 @@
                             <div class="col-lg-6">
                                 <div class="p-5">
                                     <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4">Welcome Admin</h1>
+                                        <h1 class="h4 text-gray-900 mb-4">Chào mừng Admin</h1>
                                     </div>
                                     
                                         <div class="form-group">
                                             <input type="text" class="form-control form-control-user username"
                                                 id="username" aria-describedby="emailHelp"
-                                                placeholder="Enter UserName">
+                                                placeholder="Tài khoản Admin">
                                         </div>
                                         <div class="form-group">
                                             <input type="password" class="form-control form-control-user"
-                                                id="password" placeholder="Password">
+                                                id="password" placeholder="Mật khẩu">
                                         </div>
                                         
                                         <div>
                                           <button class="btn btn-primary btn-user btn-block login" id="login">
-                                            Login Admin
+                                            Đăng nhập
                                           </button>
                                         </div> 
                                     <hr>
                                     <div class="text-center">
-                                      <a class="small" href="/staff/login">Login With staff</a>
+                                      <a class="small" href="/staff/login"><h3>Đăng nhập cho Nhân viên</h3></a>
                                   </div>
                                 </div>
                             </div>
@@ -114,7 +114,7 @@
                 localStorage.setItem("user", JSON.stringify(data));
                 window.location.assign('/book')
               } else {
-                alert("Wrong Username or Password");
+                alert("Sai tài khoản hoặc mật khẩu");
                 
               }
             }

@@ -1,7 +1,6 @@
 const { isDelete, statusRoom, statusBook, rowInPage } = require('../utils/const'); 
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
-const {decodeToken} = require('../Helpers/decodeToken.helper');
 const {verifiedToken, verifiedTokenByStaff} = require('../Helpers/validateToken.helper')
 
 
@@ -78,15 +77,16 @@ const getAllBookByStaff = async (request, response) =>{
 		
 
 		var queryBooks = `SELECT main.id,  cus.fullname, 
-		roo.roomname , main.statusBook, pay.paymentname  , 
-		main.checkindate, 
+		roo.roomname , main.statusBook, pay.paymentname , 
+		main.checkindate, staff.username,
 		main.checkoutdate, main.totalmoney, sta.statusname 
 		FROM Books main 
 		LEFT JOIN Bookdetails det ON (main.id = det.bookid) 
 		LEFT JOIN Rooms roo ON (main.roomid = roo.id)
 		LEFT JOIN Payments pay ON (main.paymentid = pay.id)
 		LEFT JOIN Customers cus ON (det.customerid = cus.id)
-		LEFT JOIN Statuss sta ON (sta.id = main.statusbook)		
+		LEFT JOIN Statuss sta ON (sta.id = main.statusbook)	
+		LEFT JOIN Staffs staff ON (main.staffid = staff.id)	
 		WHERE det.id = 1  
 		AND roo.branchtype = ?
 		AND main.isDelete = ?  
@@ -125,7 +125,7 @@ const getBookByIdFromTo = async (request, response) =>{
 		
 			var queryBooks = `SELECT main.id,  cus.fullname, 
 			roo.roomname , main.statusBook, pay.paymentname  , main.checkindate, 
-			main.checkoutdate, main.totalmoney, sta.statusname , bra.branchname
+			main.checkoutdate, main.totalmoney, sta.statusname , bra.branchname, staff.username
 			FROM Books main 
 			LEFT JOIN Bookdetails det ON (main.id = det.bookid) 
 			LEFT JOIN Rooms roo ON (main.roomid = roo.id)
@@ -133,6 +133,7 @@ const getBookByIdFromTo = async (request, response) =>{
 			LEFT JOIN Customers cus ON (det.customerid = cus.id)
 			LEFT JOIN Statuss sta ON (sta.id = main.statusbook)
 			LEFT JOIN Branchs bra ON (roo.branchtype = bra.id)
+			LEFT JOIN Staffs staff ON (main.staffid = staff.id)	
 			WHERE det.id = 1  AND main.isDelete = ${isDelete.false}  
 			ORDER BY roo.branchtype ASC, main.checkindate DESC
 			LIMIT ? , ?
@@ -218,7 +219,7 @@ const getBookById = async (request, response) =>{
 	
 		const queryBook = `
 		SELECT main.*, roo.roomname, bde.*, rot.*, 
-		pay.paymentname, sta.statusname,
+		pay.paymentname, sta.statusname, bra.branchname,
 		staf.username
 		FROM Books main
 		LEFT JOIN Rooms roo on (main.roomid = roo.id)
@@ -227,6 +228,7 @@ const getBookById = async (request, response) =>{
 		LEFT JOIN RoomTypes rot ON (roo.roomtype = rot.id)
 		LEFT JOIN Statuss sta on (main.StatusBook = sta.id)
 		LEFT JOIN Staffs staf on (main.staffid = staf.id)
+		LEFT JOIN Branchs bra on (roo.branchtype = bra.id)
 		WHERE main.id = ? AND main.isDelete = ?
 		AND bde.id = 1
 		ORDER BY main.id ASC
@@ -401,11 +403,11 @@ const searchBookByStaff = async (request, response) =>{
 		if(search !== '') {
 			searchWith = `AND  cus.fullname LIKE '%${search}%'  `;
 		}
-
+		console.log(search)
 		const queryBook = `
 		SELECT main.id,  cus.fullname, 
 		roo.roomname , main.statusBook, pay.paymentname  , 
-		main.checkindate, 
+		main.checkindate, staf.username,
 		main.checkoutdate, main.totalmoney, sta.statusname
 		FROM Books main
 		LEFT JOIN Rooms roo on (main.roomid = roo.id)
@@ -414,6 +416,7 @@ const searchBookByStaff = async (request, response) =>{
 		LEFT JOIN Customers cus on (bde.customerid = cus.id)
 		LEFT JOIN RoomTypes rot ON (roo.roomtype = rot.id)
 		LEFT JOIN Statuss sta on (main.StatusBook = sta.id)
+		LEFT JOIN Staffs staf on (main.staffid = staf.id)
 		WHERE main.isDelete = ? 
 		AND roo.branchtype = ?
 		AND bde.id = 1 ` + searchWith + ` ORDER BY main.checkindate DESC `;
@@ -446,7 +449,7 @@ const searchBookByStaff = async (request, response) =>{
 const postBook = async (request, response) =>{
 
 	try {		
-		const branchtype = verifiedTokenByStaff(request).branchtype;
+		const staffid = verifiedTokenByStaff(request).id
 		
 		const { roomid, paymentid, customerid, 
 			roomserviceid, quantityTemp, checkindate, checkoutdate, totalmoney} 
@@ -461,13 +464,13 @@ const postBook = async (request, response) =>{
 		}		
 		
 		const pool = mysql.createPool(configMysql)
-		//xóa dữ liệu cũ
+		
 		var bookidtemp = 0;		
 
 		const check = await pool.query(`
-		INSERT INTO Books (roomid, paymentid, checkoutdate, checkindate, totalmoney)	
-		VALUES (?, ?, ?, ?, ?) `, 
-		[roomid, paymentid, checkoutdate, checkindate, totalmoney]);
+		INSERT INTO Books (roomid, paymentid, checkoutdate, checkindate, totalmoney, staffid)	
+		VALUES (?, ?, ?, ?, ?, ?) `, 
+		[roomid, paymentid, checkoutdate, checkindate, totalmoney, staffid]);
 		
 		await pool.query(`UPDATE Rooms SET status = ? 
 		WHERE id = ? `,

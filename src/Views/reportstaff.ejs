@@ -47,10 +47,10 @@
                         <tr>
                             <th scope="col">STT</th>
                             <th scope="col">Phòng</th>
-                            <th scope="col">Thanh toán</th>
+                            <th scope="col">Hình Thức</th>
                             <th scope="col">Ngày Thuê</th>
                             <th scope="col">Ngày Trả</th>
-                            <th scope="col">Trạng Thái</th>
+                            <th scope="col">Thanh Toán</th>
                             <th scope="col">Thành tiền (VND)</th>
                             <th></th>
                         </tr>
@@ -71,11 +71,15 @@
     var lastPage = 1;
     var pages = 1;
     const statusBook = ["CHUATHANHTOAN", "DATHANHTOAN"]
-    const statusButton = ["No", "Success"]
+    const statusButton = ["Chưa", "Rồi"]
     
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
 
     const user = JSON.parse(localStorage.getItem('user'));
+    
+    if(user === null && localStorage.getItem('user') === null) {
+        window.location.assign("/staff/login")
+    }
     var token = "";
     if (user && user.accessToken) {
         
@@ -92,12 +96,12 @@
             if(current === 1) { 
                 bodyPages += `
                 <li class="page-item disabled">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">Đầu</button>                
                 </li>`;
             } else { 
                 bodyPages += `
                 <li class="page-item">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">Đầu</button>
                 </li>`
             } 
             var i = (Number(current) > 3 ? Number(current) - 2 : 1) 
@@ -132,12 +136,12 @@
             if(current === pages) { 
                 bodyPages += `
                 <li class="page-item disabled">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Last</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Cuối</button>                
                 </li>`
             } else { 
                 bodyPages += `
                 <li class="page-item">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Last</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Cuối</button>                
                 </li>`
             }
             bodyPages += `
@@ -164,12 +168,12 @@
                         <td>`+bookRow.checkindate+`</td>
                         <td>`+bookRow.checkoutdate+`</td>`;
                         if(bookRow.statusBook === statusBook[0]) {
-                            html += `<td class="text-center"><label class=" btn-warning">${statusButton[0]}</label></td>`;
+                            html += `<td class="text-center"><label class="btn btn-warning">${statusButton[0]}</label></td>`;
                         } if(bookRow.statusBook === statusBook[1]) {
-                            html += `<td class="text-center" ><label class="  btn-success">${statusButton[1]}</label></td>`;
+                            html += `<td class="text-center" ><label class="btn  btn-success">${statusButton[1]}</label></td>`;
                         }
                         html += `                           
-                        <td>`+money+`</td>
+                        <td style="text-align: right;">`+money+`</td>
                             <td>
                                 <button type="button" class="btn btn-warning btn-sm editbook" data-id="`+bookRow.id+`">
                                     View
@@ -228,6 +232,7 @@
            });
 
         $(document).on('click', '.pagesindex', function(){
+            
             var id = $(this).data('id');
             id = parseInt(id);
             $.ajax({
@@ -255,7 +260,6 @@
             
             var id = $(this).data('id');
             window.open(`/invoicestaff/${id}`)
-            //window.location.replace(`/invoice/${id}`);
         });
 
     });

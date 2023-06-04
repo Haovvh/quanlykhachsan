@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { getAllBook, getBookByIdAndStaff, loadBookDataByStaff, getAllBookByStaff, searchBook, getBook, getBookByIdFromTo, loadBookData, getBookById, postBook, putBook, deleteBook, putBookSuccess } = require('../Controllers/book.controller');
+const { getAllBook,searchBookByStaff, getBookByIdAndStaff, loadBookDataByStaff, getAllBookByStaff, searchBook, getBook, getBookByIdFromTo, loadBookData, getBookById, postBook, putBook, deleteBook, putBookSuccess } = require('../Controllers/book.controller');
 const {validateToken} = require('../Helpers/validateToken.helper');
 
 const router = Router();
@@ -14,6 +14,7 @@ const router = Router();
     router.get('/page/:id/:rowinpage',validateToken, getBookByIdFromTo);
     router.post('/',validateToken, postBook);
     router.post('/search',validateToken, searchBook);
+    router.post('/searchstaff',validateToken, searchBookByStaff);
     router.put('/',validateToken, putBook);
     router.put('/success',validateToken, putBookSuccess);
     router.delete('/',validateToken, deleteBook)

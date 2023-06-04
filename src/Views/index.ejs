@@ -5,6 +5,10 @@
 </div>
 
 <script>
+  const user = JSON.parse(localStorage.getItem('user'));
+  if(user === null && localStorage.getItem('user') === null) {
+        window.location.assign("/admin/login")
+    }
   $(document).ready( function(){
     
     load_data();

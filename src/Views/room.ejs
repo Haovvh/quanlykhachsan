@@ -10,7 +10,7 @@
                     <button type="button" id="search" class="btn btn-success   search">Tìm kiếm</button>
                 </div>
                 <div class="col-6">
-                    <button type="button" id="add_data" class="btn btn-primary float-end">Add</button>
+                    <button type="button" id="add_data" class="btn btn-primary float-end">Thêm</button>
                 </div>
                 
             </div>
@@ -71,9 +71,9 @@
                 </div>
                 <div class="modal-footer">
                     <input type="hidden" name="id" id="id" />
-                    <input type="hidden" name="action" id="action" value="Add" />
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="actionButton">Add</button>
+                    <input type="hidden" name="action" id="action" value="Thêm" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary" id="actionButton">Thêm</button>
                 </div>
             </form>
         </div>
@@ -91,6 +91,9 @@
     var _branchtype =`
     `;
     const user = JSON.parse(localStorage.getItem('user'));
+    if(user === null && localStorage.getItem('user') === null) {
+        window.location.assign("/admin/login")
+    }
     var token = "";
     if (user && user.accessToken) {
         
@@ -108,14 +111,14 @@
                 bodyPages += `
                 <li class="page-item disabled">
                     <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">
-                        First
+                        Đầu
                     </button>                
                 </li>`;
             } else { 
                 bodyPages += `
                 <li class="page-item">
                     <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">
-                        First
+                        Đầu
                     </button>
                 </li>`
             } 
@@ -158,14 +161,14 @@
                 bodyPages += `
                 <li class="page-item disabled">
                     <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">
-                        Last
+                        Cuối
                     </button>                
                 </li>`
             } else { 
                 bodyPages += `
                 <li class="page-item">
                     <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">
-                        Last
+                        Cuối
                     </button>                
                 </li>`
             }
@@ -188,16 +191,16 @@
                         <td>`+roomRow.branchname+`</td>
                         <td>`+roomRow.roomname+`</td>
                         <td>`+roomRow.roomtypename+`</td>
-                        <td>`+price+`</td>
+                        <td style="text-align: right;">`+price+`</td>
                         <td>`+roomRow.statusname+`</td>
                         <td>`+roomRow.description+`</td>
                         <td>
                             <button type="button" class="btn btn-warning btn-sm edit" data-id="`+roomRow.id+`">
-                                Edit
+                                Sửa
                             </button>
                             &nbsp;
                             <button type="button" class="btn btn-danger btn-sm delete" data-id="`+roomRow.id+`">
-                                Delete
+                                Xóa
                             </button>
                         </td>
                     </tr>
@@ -231,7 +234,10 @@
                 dataType : "JSON",
                 success:function( data)
                 {
-                    
+                    if(data.success === false && data.statusCode === 400){
+                        alert("Token Đã hết hạn. Vui lòng đăng nhập")
+                        window.location.assign('admin/login')
+                    }
                     _roomType =``;
                     var html = '';     
                     _branchtype =``;
@@ -283,13 +289,13 @@
             indexMode = viewMode[1];
             document.querySelector('#sample_form div div .roomtype').innerHTML = _roomType;
             document.querySelector('#sample_form div div .branchtype').innerHTML = _branchtype;
-            $('#dynamicModalTitle').text('Add Customer');
+            $('#dynamicModalTitle').text('Thêm Phòng');
     
             $('#sample_form')[0].reset();
     
-            $('#action').val('Add');
+            $('#action').val('Thêm');
     
-            $('#actionButton').text('Add');
+            $('#actionButton').text('Thêm');
     
             $('#actionModal').modal('show');
     
@@ -313,7 +319,7 @@
                 success:function(data)
                 {
                     if(data.success) {
-                        alert("Add Room Success")
+                        alert("Thêm Thành công")
                         $('#actionButton').attr('disabled', false);                    
                        
     
@@ -321,10 +327,6 @@
         
                         load_data();
                     }
-                    
-                    
-    
-                    
                 }
             });
     
@@ -346,13 +348,13 @@
                 dataType:"JSON",
                 success:function(data)
                 {
-                    
+                    console.log(data)
                     if(data.success) {
-                        $('#dynamicModalTitle').text('Edit Data');
+                        $('#dynamicModalTitle').text('Sửa Phòng');
     
-                        $('#action').val('Edit');
+                        $('#action').val('Sửa');
                 
-                        $('#actionButton').text('Edit');
+                        $('#actionButton').text('Sửa');
                 
                         $('#actionModal').modal('show');
                         const temp = data.data;
@@ -365,7 +367,7 @@
                         $('#status').val(temp.status);
                         $('#id').val(temp.id);
                     } else {
-                        alert("Error")
+                        alert("Sửa không thành công")
                     }
                 }
             });
@@ -376,7 +378,7 @@
     
             var id = $(this).data('id');
     
-            if(confirm("Are you sure you want to delete this data?"))
+            if(confirm("Bạn muốn Xóa??"))
             {
 
                 $.ajax({
@@ -392,14 +394,13 @@
 
                         
                         if(data.success) {
-                            alert("success")
                             document.querySelector('#message').innerHTML = '<div class="alert alert-success">'+data.message+'</div>';                       
                             load_data();
                             setTimeout(function(){
                                 document.querySelector('#message').innerHTML = '';
                             }, 5000);
                         } else {
-                            alert("Error")
+                            alert(data.message)
                         }
                         
                     }
@@ -420,8 +421,6 @@
                 dataType : "JSON",
                 success:  function( data)
                 {
-                    
-
                     if(data.data && data.data.length > 0) {
                         pages = Math.ceil(data.data.length/rowInPage)
                         const current = 1;
@@ -441,19 +440,20 @@
         });
     
 
-        $(document).on('click', '.pagesindex', function(){            
+        $(document).on('click', '.pagesindex', function(){     
+            const search = document.getElementById("search").value       
+            console.log(search)
             var id = $(this).data('id');
             id = parseInt(id);            
             $.ajax({
-                url: `/room/page/${id-1}0/${rowInPage}`,
+                url: `/room/page/${id-1}0/${rowInPage}/${search}`,
                 method: viewMode[0],
                 headers: {
                     'Authorization':token
                 },
                 dataType : "JSON",
                 success:  function( data)
-                {
-                    
+                {                    
                     let _stt = id-1 + "" + 0;
                     _stt = parseInt(_stt)
   

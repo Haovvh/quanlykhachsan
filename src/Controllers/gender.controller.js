@@ -107,7 +107,7 @@ const postGender = async (request, response) => {
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Added', 
+			message : 'Thêm mới thành công', 
 			success: true
 		});
 		
@@ -134,7 +134,7 @@ const putGenderById = async (request, response) => {
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Edited',
+			message : 'Sửa thành công',
 			success: true
 		});
 
@@ -160,7 +160,7 @@ const deleteGenderById = async (request, response) => {
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Deleted', 
+			message : 'Xóa thành công', 
 			success: true
 		});
 		

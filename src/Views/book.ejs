@@ -23,8 +23,8 @@
                             <th scope="col">Thanh toán</th>
                             <th scope="col">Ngày Thuê</th>
                             <th scope="col">Ngày Trả</th>
-                            <th scope="col">Trạng Thái</th>
-                            <th scope="col">Total</th>
+                            <th scope="col">Thanh Toán</th>
+                            <th scope="col">Tổng tiền</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -113,6 +113,9 @@
     var pages = 1;
 
     const user = JSON.parse(localStorage.getItem('user'));
+    if(user === null && localStorage.getItem('user') === null) {
+        window.location.assign("/admin/login")
+    }
     var token = "";
     if (user && user.accessToken) {
         
@@ -197,12 +200,12 @@
             if(current === 1) { 
                 bodyPages += `
                 <li class="page-item disabled">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">Đầu</button>                
                 </li>`;
             } else { 
                 bodyPages += `
                 <li class="page-item">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">Đầu</button>
                 </li>`
             } 
             var i = (Number(current) > 3 ? Number(current) - 2 : 1) 
@@ -237,12 +240,12 @@
             if(current === pages) { 
                 bodyPages += `
                 <li class="page-item disabled">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Last</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Cuối</button>                
                 </li>`
             } else { 
                 bodyPages += `
                 <li class="page-item">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Last</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Cuối</button>                
                 </li>`
             }
             bodyPages += `
@@ -386,7 +389,7 @@
     }
 
     const bodyCustomerDetail = () =>{
-        //Edit bi lõi
+
         this.bodyCustomer = "";
 
         for(let j = 0; j < this.customerDetails.length; j++){
@@ -431,15 +434,15 @@
                         <td>`+bookRow.checkindate+`</td>
                         <td>`+bookRow.checkoutdate+`</td>`;
                         if(bookRow.statusBook === statusBook[0]) {
-                            html += `<td class="text-center"><label class=" btn-warning">${statusButton[0]}</label></td>`;
+                            html += `<td class="text-center"><label class="btn btn-warning btn-sm">Chưa</label></td>`;
                         } if(bookRow.statusBook === statusBook[1]) {
-                            html += `<td class="text-center" ><label class="  btn-success">${statusButton[1]}</label></td>`;
+                            html += `<td class="text-center" ><label class="btn  btn-success btn-sm">Rồi</label></td>`;
                         }
                         html += `                           
-                        <td>`+totalmoney+`</td>
+                        <td style="text-align: right;">`+totalmoney+`</td>
                             <td>
-                                <button type="button" class="btn btn-warning btn-sm editbook" data-id="`+bookRow.id+`">
-                                    View
+                                <button type="button" class="btn btn-info btn-sm editbook" data-id="`+bookRow.id+`">
+                                    Xem
                                 </button>                                    
                             </td>
                         </tr>
@@ -470,7 +473,11 @@
                 dataType : "JSON",
                 success:function( data)
                 {
-                    if(data.book.length > 0 && data.success) {
+                    if(data.success === false && data.statusCode === 400){
+                        alert("Token Đã hết hạn. Vui lòng đăng nhập")
+                        window.location.assign('admin/login')
+                    }
+                    if(data && data.book.length > 0 && data.success) {
                         rowInPage = data.rowInPage;
                         pages = Math.ceil(data.book.length/rowInPage)
                         const current = 1;

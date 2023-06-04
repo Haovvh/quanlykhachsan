@@ -18,6 +18,10 @@
                     <div class="col-2">
                         <label class="form-label"><h5>Nhân Viên</h5></label>
                     </div>
+                    <div class="col-4">
+                        <button class="btn btn-primary float-end print" id="print">In</button>
+                        
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-2">
@@ -73,6 +77,9 @@
     var payments = ``;
     const viewMode = ["GET", "POST", "PUT", "DELETE"];
     const user = JSON.parse(localStorage.getItem('user'));
+    if(user === null && localStorage.getItem('user') === null) {
+        window.location.assign("/staff/login")
+    }
     var token = "";
     if (user && user.accessToken) {
         
@@ -108,7 +115,8 @@
                             <thead>
                                 <tr>
                                     <th scope="col">Tên Phòng</th>                                    
-                                    <th scope="col">Ngày Thuê/ Trả</th>                                 
+                                    <th scope="col">Ngày Thuê</th>    
+                                    <th scope="col">Ngày Trả</th>                               
                                     <th scope="col">Số Ngày</th>
                                     <th scope="col">Đơn giá/ngày</th>
                                     <th scope="col">Đơn giá/giờ</th>
@@ -217,8 +225,7 @@
     }
 
     const bodyRoomDetail = () =>{
-        
-        //Edit bi lõi
+               
         this.bodyRoom = "";
         const checkindate = room[0].checkindate
         const checkoutdate = room[0].checkoutdate
@@ -240,7 +247,7 @@
 
         tempday = Math.round(days);
         const tempdays = Math.round(days);
-            // nếu thời gian giờ > 8 tiếng thì tính 1 ngày
+           
         if(hour > 8) {
             tempday++;
             hour = 0;
@@ -253,9 +260,9 @@
                         <tr>
                             <td>${temproom.roomname}</td>
                                         
-                            <td>${checkindate.toLocaleString()}     /     ${checkoutdate.toLocaleString()}</td>
-                            
-                            <td>${tempdays} Day ${tempHour} hours</td>
+                            <td>${checkindate.toLocaleString()}</td>
+                            <td>${checkoutdate.toLocaleString()}</td>
+                            <td>${tempdays} Ngày ${tempHour} Giờ</td>
                             
                             <td>${roomprice}</td>
                             <td>${(temproom.price/10).toLocaleString(undefined)}</td>
@@ -368,7 +375,13 @@
                     }
             })    
         }    
+        $(document).on('click', '.print', function(){
+            
+            event.preventDefault();
+            window.print();
+            
+    })
 
-});
+    });
     
     </script>

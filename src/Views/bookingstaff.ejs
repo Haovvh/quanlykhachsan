@@ -1,28 +1,15 @@
-
-
-<!-- Book -->
-
-
 <div class="container roomform" id="roomform">    
     <div class="card">
-        <div class="card-header">
-            <div class="row">
-                <div class="col-3">
-                    <input type="text" name="search" id="search" class="form-control" placeholder="Tìm kiếm"/>
-                </div>
-                <div class="col-2">
-                    <button type="button" id="search" class="btn btn-success   search">Tìm kiếm</button>
-                </div>
-            </div>
+        <div class="row justify-content-left totalroom" id="totalroom">
+            
+        </div>
+        <div class="card-text pages row justify-content-center"  id="pages">
+            
         </div>
         
     </div>
-    <div class="row justify-content-left totalroom" id="totalroom">
-            
-    </div>
-    <div class="card-text pages row justify-content-center"  id="pages">
-            
-    </div>
+    
+    
 </div>
 
 
@@ -150,7 +137,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3 ">
-                        <label class="form-label">FullName</label>                        
+                        <label class="form-label">Tên khách hàng</label>                        
                         <input type="text" name="fullname" list="listcustomer" id="fullname" class="form-control"  required/>
                         <datalist id="listcustomer">
 
@@ -160,9 +147,9 @@
                 </div>
                 <div class="modal-footer">
                     <input type="hidden" name="id" id="id" />
-                    <input type="hidden" name="action" id="action" value="Add" />
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="actionButton">Add</button>
+                    <input type="hidden" name="action" id="action" value="Thêm" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary" id="actionButton">Thêm</button>
                 </div>
             </form>
         </div>
@@ -180,23 +167,23 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3 ">
-                        <label class="form-label">RoomServicename</label>
+                        <label class="form-label">Dịch vụ phòng</label>
                         <input type="text" name="roomservicename" list="listRoomService" id="roomservicename" class="form-control"  required/>
                         <datalist id="listRoomService">
 
                         </datalist>
                     </div>
                     <div class="mb-3 ">
-                        <label class="form-label">Quantity</label>
+                        <label class="form-label">Số lượng</label>
                         <input type="number" name="quantity" id="quantity" class="form-control quantity" required/>
                     </div>
                                      
                 </div>
                 <div class="modal-footer">
                     
-                    <input type="hidden" name="action" id="action" value="Add" />
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="actionButtonRoom">Add</button>
+                    <input type="hidden" name="action" id="action" value="Thêm" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary" id="actionButtonRoom">Thêm</button>
                 </div>
             </form>
         </div>
@@ -246,7 +233,9 @@
     var pages = 1;
 
     const user = JSON.parse(localStorage.getItem('user'));
-
+    if(user === null && localStorage.getItem('user') === null) {
+        window.location.assign("/staff/login")
+    }
     var token = "";
     var staffid = ""
     if (user && user.accessToken) {        
@@ -264,12 +253,12 @@
             if(current === 1) { 
                 bodyPages += `
                 <li class="page-item disabled">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">Đầu</button>                
                 </li>`;
             } else { 
                 bodyPages += `
                 <li class="page-item">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">Đầu</button>
                 </li>`
             } 
             var i = (Number(current) > 3 ? Number(current) - 2 : 1) 
@@ -303,12 +292,12 @@
             if(current === pages) { 
                 bodyPages += `
                 <li class="page-item disabled">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Last</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Cuối</button>                
                 </li>`
             } else { 
                 bodyPages += `
                 <li class="page-item">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Last</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Cuối</button>                
                 </li>`
             }
             bodyPages += `
@@ -350,9 +339,10 @@
                         <table class="table table-striped table-bordered" id="roomdetail">
                             <thead>
                                 <tr>
-                                    <th scope="col">Tên Phòng</th>      
-                                    <th scope="col">Max Customer</th>                                
-                                    <th scope="col">Ngày Thuê/ Ngày Trả</th>                                 
+                                    <th scope="col">Phòng</th>      
+                                    <th scope="col">Số Khách tối đa</th>                                
+                                    <th scope="col">Ngày Thuê</th>        
+                                    <th scope="col">Ngày Trả</th>                                                          
                                     <th scope="col">Số Ngày</th>
                                     <th scope="col">Đơn giá/ngày (VND)</th>
                                     <th scope="col">Đơn giá/giờ (VND)</th>
@@ -447,11 +437,11 @@
 
                                         <td>
                                             <button type="button" class="btn btn-warning btn-sm editRoomservice" data-index="${parseInt(j+1)}" data-id="${roomservice.id}">
-                                                Edit
+                                                Sửa
                                             </button>
                                             &nbsp;
                                             <button type="button" class="btn btn-danger btn-sm deleteRoomservice" data-id="${parseInt(j+1)}">
-                                                Delete
+                                                Xóa
                                             </button>
                                         </td>
                                     </tr>
@@ -480,7 +470,7 @@
     }
 
     const bodyRoomDetail = () =>{
-        //Edit bi lõi
+
         this.bodyRoom = "";
         var checkindate = document.getElementById('checkindate').value;
         var checkoutdate = document.getElementById('checkoutdate').value;
@@ -523,9 +513,10 @@
                             <td>${rooms[i].roomname} </td>
                             <td> ${rooms[i].maxcustomer} </td>
                                         
-                            <td>${checkindate.toLocaleString()}     /     ${checkoutdate.toLocaleString()}</td>
+                            <td>${checkindate.toLocaleString()}</td>
+                            <td>${checkoutdate.toLocaleString()}</td>
                             
-                            <td>${tempdays} Day ${tempHour} hours</td>
+                            <td>${tempdays} Ngày ${tempHour} giờ</td>
                             
                             <td>${(parseInt(rooms[i].price)).toLocaleString(undefined)}</td>
                             <td>${(rooms[i].price/10).toLocaleString(undefined)}</td>
@@ -547,7 +538,7 @@
     }
 
     const bodyCustomerDetail = () =>{
-        //Edit bi lõi
+
         this.bodyCustomer = "";
 
         for(let j = 0; j < this.customerDetails.length; j++){
@@ -564,12 +555,8 @@
                                             <td>${customer.citizenIdentityCard}</td>
                                             <td>${customer.customertypename}</td>                                        
                                             <td>
-                                                <button type="button" class="btn btn-warning btn-sm editBookdetail" data-index="${parseInt(j+1)}" data-id="${customer.id}" >
-                                                    Edit
-                                                </button>
-                                                &nbsp;
                                                 <button type="button" class="btn btn-danger btn-sm deleteBookdetail" data-id="${parseInt(j+1)}">
-                                                    Delete
+                                                    Xóa
                                                 </button>
                                             </td>
                                         </tr>
@@ -606,9 +593,9 @@
                             }
                             htmlRoom +=  `  chooseroom" data-id="${data.id}">
                                         <div class="card-body">
-                                            <h4 class="card-title"> ${data.roomname}</h4>
-                                            <p class="card-text">${totalmoney} (VND/Ngày)</p>
-                                        <p class="card-text">Max Customer: ${data.maxcustomer}</p>
+                                            <h4 class="card-title"> Phòng</h4>
+                                            <h4 class="card-title">${data.roomname}</h4>
+                                            <p class="card-text">Đơn giá: ${totalmoney} (VND/Ngày)</p>                                      
                                     
                                         </div>
                                         </button>
@@ -642,7 +629,10 @@
                 dataType : "JSON",
                 success:function(data)
                 {
-      
+                    if(data.success === false && data.statusCode === 400){
+                        alert("Token Đã hết hạn. Vui lòng đăng nhập")
+                        window.location.assign('staff/login')
+                    }
                     htmlRoom = "";
                     
                     if(data.success){
@@ -886,13 +876,13 @@
                 let _item = document.getElementById("itemId").value;
 
                 if(_item === "customer") {
-                    $('#dynamicModalTitle').text('Add Customer');
+                    $('#dynamicModalTitle').text('Thêm Khách hàng');
         
                     $('#customerForm')[0].reset();
             
-                    $('#action').val('Add');
+                    $('#action').val('Thêm');
             
-                    $('#actionButton').text('Add');    
+                    $('#actionButton').text('Thêm');    
 
                     document.getElementById('listcustomer').innerHTML = htmlOptionCustomer;
             
@@ -901,13 +891,13 @@
                 } else if (_item === "roomservice"){
    
                     
-                    $('#dynamicModalTitleRoom').text('Add RoomService');
+                    $('#dynamicModalTitleRoom').text('Thêm Dịch vụ');
         
                     $('#roomServiceForm')[0].reset();
             
-                    $('#action').val('Add');
+                    $('#action').val('Thêm');
             
-                    $('#actionButtonRoom').text('Add');
+                    $('#actionButtonRoom').text('Thêm');
                     document.getElementById('listRoomService').innerHTML = htmlOptionRoomService;
             
                     $('#actionModalRoom').modal('show');
@@ -941,7 +931,7 @@
                                         
                                         if(data && data.success) {
                                             loadBookIsPay =false;
-                                            alert("Success");
+                                            alert("Thành công");
                                             window.location.reload();
                                             
                                         }                    
@@ -967,9 +957,9 @@
         $('#payBook').click(function(event){
             
             if (!loadBookIsPay) {
-                alert("Vui lòng Save Trước ");
+                alert("Vui lòng Lưu Trước ");
             } else {
-                if(confirm(`Are you sure you want to Pay this data?`)){
+                if(confirm(`Bạn muốn thanh toán?`)){
                     
                     event.preventDefault();
                     $.ajax({
@@ -989,9 +979,9 @@
                         success:function(data)
                         {
                             if(data && data.success) {
-                                alert("Success");
-
-                                window.location.replace(`/invoicestaff/${bookId}`);                                
+                                alert("Thành công");
+                                window.open(`/invoicestaff/${bookId}`)
+                                                    
                             }
                         }
                     });
@@ -1000,8 +990,7 @@
         });            
     
         $('#customerForm').on('submit', function(event){            
-            console.log(customerDetails.length)
-            console.log(maxCustomer)
+            
             let valueCustomer = document.getElementById("fullname").value;
             let _id = $("#listcustomer option").filter( function() {
                 return this.value == valueCustomer;
@@ -1024,12 +1013,16 @@
                         loadBookIsPay = false;
                         if (data.success) {
                             const temp = data.data
-                            
                             if(bookViewMode === viewMode[1]) {
-
-                                customerDetails.push({
+                                const check = customerDetails.filter(e => e.id === temp.id).length
+                                if(check >= 1) {
+                                    alert("Khách hàng đã tồn tại")
+                                } else {
+                                    customerDetails.push({
                                     id: temp.id
                                 })
+                                }
+                                
                             } else {
                                 customerDetails[parseInt(indexRoomService-1)].id = parseInt(temp.id);
                             }                            
@@ -1094,11 +1087,11 @@
                 });
             }
             else {
-                alert("RoomService không tồn tại")
+                alert("Dịch vụ phòng không tồn tại")
             } 
             });        
 
-            //Edit dang bị lỗi
+
         $(document).on('click', '.editBookdetail', function(){           
       
     
@@ -1106,13 +1099,13 @@
 
             indexCustomer = $(this).data('index');
             
-            $('#dynamicModalTitle').text('Edit Data');
+            $('#dynamicModalTitle').text('Sửa Khách hàng');
     
             $('#customerForm')[0].reset();
 
-            $('#action').val('Edit');
+            $('#action').val('Sửa');
     
-            $('#actionButton').text('Edit');
+            $('#actionButton').text('Sửa');
 
             document.getElementById('listcustomer').innerHTML = htmlOptionCustomer;
             
@@ -1135,20 +1128,17 @@
         });
         
         $(document).on('click', '.editRoomservice', function(){
-            
-       
-    
             var id = $(this).data('id');
             indexRoomService = $(this).data('index');
             var temp = `quantityTemp${id}`
             var tempQuantity = document.getElementById(temp).value;
-            $('#dynamicModalTitleRoom').text('Edit Data');
+            $('#dynamicModalTitleRoom').text('Sửa Dịch vụ phòng');
 
             $('#roomServiceForm')[0].reset();
 
-            $('#action').val('Edit');
+            $('#action').val('Sửa');
     
-            $('#actionButtonRoom').text('Edit');
+            $('#actionButtonRoom').text('Sửa');
 
             document.getElementById('listRoomService').innerHTML = htmlOptionRoomService;
     
@@ -1177,7 +1167,7 @@
     
             var id = $(this).data('id');
     
-            if(confirm("Are you sure you want to delete this data?"))
+            if(confirm("Bạn muốn Xóa??"))
             {
                 loadBookIsPay = false;
                 if(id && parseInt(id) > 0){
@@ -1216,7 +1206,7 @@
 
         $(document).on('click', '.deleteRoomservice', function(){    
             var id = $(this).data('id');            
-            if(confirm(`Are you sure you want to delete this data? ${id}`))
+            if(confirm(`Bạn muốn Xóa?? ${id}`))
             {
                 loadBookIsPay = false;
                 if(id && parseInt(id) > 0){

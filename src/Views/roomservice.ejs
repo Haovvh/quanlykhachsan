@@ -10,7 +10,7 @@
                     <button type="button" id="search" class="btn btn-success   search">Tìm kiếm</button>
                 </div>
                 <div class="col-6">
-                    <button type="button" id="addRoomService" class="btn btn-primary float-end">Add</button>
+                    <button type="button" id="addRoomService" class="btn btn-primary float-end">Thêm</button>
                 </div>                
             </div>
         </div>
@@ -57,9 +57,9 @@
                 </div>
                 <div class="modal-footer">
                     <input type="hidden" name="id" id="id" />
-                    <input type="hidden" name="action" id="action" value="Add" />
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="actionButton">Add</button>
+                    <input type="hidden" name="action" id="action" value="Thêm" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary" id="actionButton">Thêm</button>
                 </div>
             </form>
         </div>
@@ -75,6 +75,9 @@
     var indexMode = "GET";
     const user = JSON.parse(localStorage.getItem('user'));
     var token = "";
+    if(user === null && localStorage.getItem('user') === null) {
+        window.location.assign("/admin/login")
+    }
     if (user && user.accessToken) {
         
         token = `Bearer ${user.accessToken}`
@@ -91,12 +94,12 @@
             if(current === 1) { 
                 bodyPages += `
                 <li class="page-item disabled">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">Đầu</button>                
                 </li>`;
             } else { 
                 bodyPages += `
                 <li class="page-item">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">Đầu</button>
                 </li>`
             } 
             var i = (Number(current) > 3 ? Number(current) - 2 : 1) 
@@ -131,12 +134,12 @@
             if(current === pages) { 
                 bodyPages += `
                 <li class="page-item disabled">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Last</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Cuối</button>                
                 </li>`
             } else { 
                 bodyPages += `
                 <li class="page-item">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Last</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Cuối</button>                
                 </li>`
             }
             bodyPages += `
@@ -158,14 +161,14 @@
                             <tr>
                                 <td>`+ _stt +`</td>
                                 <td>`+data.roomservicename+`</td>
-                                <td>`+price+`</td>
+                                <td style="text-align: right;">`+price+`</td>
                                 <td>
                                     <button type="button" class="btn btn-warning btn-sm edit" data-id="`+data.id+`">
-                                        Edit
+                                        Sửa
                                     </button>
                                     &nbsp;
                                     <button type="button" class="btn btn-danger btn-sm delete" data-id="`+data.id+`">
-                                        Delete
+                                        Xóa
                                     </button>
                                 </td>
                             </tr>
@@ -198,7 +201,10 @@
                 dataType : "JSON",
                 success:function( data)
                 {
-
+                    if(data.success === false && data.statusCode === 400){
+                        alert("Token Đã hết hạn. Vui lòng đăng nhập")
+                        window.location.assign('admin/login')
+                    }
                     if (data.success) {
                         rowInPage = data.rowInPage
                     }
@@ -227,13 +233,13 @@
         $('#addRoomService').click(function(){
 
 
-            $('#dynamicModalTitle').text('Add RoomType');
+            $('#dynamicModalTitle').text('Thêm Dịch vụ phòng');
     
             $('#roomServiceForm')[0].reset();
     
-            $('#action').val('Add');
+            $('#action').val('Thêm');
     
-            $('#actionButton').text('Add');
+            $('#actionButton').text('Thêm');
     
             $('#actionModal').modal('show');
             indexMode = viewMode[1];
@@ -272,7 +278,8 @@
                             document.querySelector('#message').innerHTML = '';
                         }, 5000);
                     } else {
-                        alert("Error")
+                        $('#actionButton').attr('disabled', false);
+                        alert(data.message)
                     }
                     
                 }
@@ -298,11 +305,11 @@
                 {
                     
                     if(data.success) {
-                        $('#dynamicModalTitle').text('Edit Data');
+                        $('#dynamicModalTitle').text('Sửa Dịch vụ phòng');
     
-                        $('#action').val('Edit');
+                        $('#action').val('Sửa');
                 
-                        $('#actionButton').text('Edit');
+                        $('#actionButton').text('Sửa');
                 
                         $('#actionModal').modal('show');
                         const temp = data.data;
@@ -312,7 +319,7 @@
                         $('#id').val(temp.id);
                         indexMode = viewMode[2]
                     } else {
-                        alert("Error")
+                        alert("Sửa không thành công")
                     }
                     
                 }
@@ -379,7 +386,7 @@
     
             var id = $(this).data('id');
     
-            if(confirm("Are you sure you want to delete this data?"))
+            if(confirm("Bạn muốn Xóa??"))
             {
                 $.ajax({
                     url:'/roomservice',
@@ -399,7 +406,7 @@
                                 document.querySelector('#message').innerHTML = '';
                             }, 5000);
                         } else {
-                            alert("Error")
+                            alert("Xía không thành công")
                         }
                         
                     }

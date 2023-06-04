@@ -1,5 +1,5 @@
 
-const database = require('../config/mysql');
+
 const {isDelete, statusBook} = require('../utils/const');
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');

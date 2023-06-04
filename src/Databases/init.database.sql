@@ -1,8 +1,6 @@
 drop database QLKhachSan;
 create database QLKhachSan;
 
-
-
         CREATE TABLE QLKhachSan.Branchs (
         id			            BIGINT PRIMARY KEY AUTO_INCREMENT
         ,branchname                   VARCHAR(50) NOT NULL
@@ -124,6 +122,9 @@ CREATE TABLE QLKhachSan.Staffs (
         ,UNIQUE(paymentname)
         );
 
+
+
+
         INSERT INTO qlkhachsan.Statuss(id, statusname)
         VALUES ('SANSANG', 'Đã sẵn sàng'), ('DANGTHUE','Đang cho thuê'),('VESINH','Đang vệ sinh'),
         ('BAOTRI','Đang bảo trì'), ('CHUATHANHTOAN','Chưa Thanh Toán'), ('DATHANHTOAN','Đã thanh toán');
@@ -132,7 +133,7 @@ CREATE TABLE QLKhachSan.Staffs (
         VALUES ('Trong nước'), ('Quốc tế'),('Khác');
 
         INSERT INTO qlkhachsan.Customers( citizenIdentityCard, address, fullname, dateofbirth, customertype, gender)
-        VALUES (,'23331936746','66 Nguyễn Ngọc Phương','Nguyễn Kiều Trinh','1981-05-04','1','1'),
+        VALUES ('23331936746','66 Nguyễn Ngọc Phương','Nguyễn Kiều Trinh','1981-05-04','1','1'),
         ('233308198946','1 Phạm Văn Bạch','Trần Bá Đạo','1981-05-04','1','1'),
         ('194946194946','180 Trần Bình Trọng','Trần Thiên Ân Thư','1981-05-04','1','2'),
         ('223330819246','Nơ Trang Long','Võ Công Danh','1981-05-04','1','1'),

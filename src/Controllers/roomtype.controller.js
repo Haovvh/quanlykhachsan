@@ -110,7 +110,7 @@ const postRoomType = async (request, response) =>{
 		await pool.query(query,[roomtypename, price, maxcustomer]);
 		pool.end();
 		response.json({
-			message : 'Data Added',
+			message : 'Thêm mới thành công',
 			success: true
 		});
 		
@@ -138,7 +138,7 @@ const putRoomTypeById = async(request, response) =>{
 		await pool.query(query,[roomtypename, price, maxcustomer, id]);
 		await pool.end();
 		response.json({
-			message : 'Data Edited',
+			message : 'Sửa thành công',
 			success: true
 		});
 		
@@ -164,7 +164,7 @@ const deleteRoomTypeById = async(request, response) =>{
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Deleted',
+			message : 'Xóa thành công',
 			success: true
 		});
 	} catch (error) {

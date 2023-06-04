@@ -45,27 +45,27 @@
                             <div class="col-lg-6">
                                 <div class="p-5">
                                     <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
+                                        <h1 class="h4 text-gray-900 mb-4">Chào mừng nhân viên</h1>
                                     </div>
                                     
                                         <div class="form-group">
                                             <input type="text" class="form-control form-control-user username"
                                                 id="username" aria-describedby="emailHelp"
-                                                placeholder="Enter UserName">
+                                                placeholder="Tài khoản nhân viên">
                                         </div>
                                         <div class="form-group">
                                             <input type="password" class="form-control form-control-user"
-                                                id="password" placeholder="Password">
+                                                id="password" placeholder="Mật khẩu">
                                         </div>                                        
                                         <div>
                                           <button class="btn btn-primary btn-user btn-block login" id="login">
-                                            Login Staff
+                                            Đăng nhập
                                           </button>
                                         </div>
                                         
                                         <hr>                                    
                                         <div class="text-center">
-                                          <a class="small" href="/admin/login">Login With admin</a>
+                                          <a class="small" href="/admin/login"> <h3>Đăng nhập cho admin</h3></a>
                                       </div>
                                 </div>
                             </div>
@@ -114,7 +114,7 @@
                 localStorage.setItem("user", JSON.stringify(data));
                 window.location.assign('/bookingstaff')
               } else {
-                alert("Wrong Staff or Password");
+                alert("Sai tài khoản hoặc mật khẩu");
                 
               }
             }

@@ -4,7 +4,7 @@
         <div class="card-header">
             <div class="row">
                 <div class="col-6">
-                    <button type="button" id="changepass" class="btn btn-success float-start">Change Password</button>
+                    <button type="button" id="changepass" class="btn btn-success float-start">Đổi mật khẩu</button>
                 </div> 
             </div>
         </div>
@@ -22,17 +22,17 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3 ">
-                        <label class="form-label">Old Password</label>
+                        <label class="form-label">Mật khẩu cũ</label>
                         <input type="password" name="oldpassword" id="oldpassword" class="form-control oldpassword" required />
                     </div>
                     <div class="mb-3 ">
-                        <label class="form-label">New Password</label>
+                        <label class="form-label">Mật khẩu mới</label>
                         <input type="password" name="newpassword" id="newpassword" class="form-control newpassword" required/>
                     </div>        
                 </div>
                 <div class="modal-footer">                    
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="actionButton">Add</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary" id="actionButton">Thêm</button>
                 </div>
             </form>
         </div>
@@ -41,22 +41,27 @@
 <script>
     const user = JSON.parse(localStorage.getItem('user'));
 
+    if(user === null && localStorage.getItem('user') === null) {
+        window.location.assign("/admin/login")
+    }
+    
     var token = "";
+    
     if (user && user.accessToken) {        
         token = `Bearer ${user.accessToken}`
                
     }
     
-    $(document).ready( function(){      
-
+    $(document).ready( function(){     
+        
         $('#changepass').click(function(){
-            $('#dynamicModalTitle').text('Change Password');
+            $('#dynamicModalTitle').text('Đổi mật khẩu');
     
             $('#sample_form')[0].reset();
     
-            $('#action').val('Add');
+            $('#action').val('Thêm');
     
-            $('#actionButton').text('Add');
+            $('#actionButton').text('Đồng ý');
     
             $('#actionModal').modal('show');
     
@@ -82,7 +87,7 @@
                         alert("Đổi mật khẩu thành công")
                         window.location.assign('/admin/login')
                     } else {
-                        alert("Wrong password")
+                        alert("Sai mật khẩu")
                     }
                     
                 }

@@ -13,7 +13,7 @@ const router = Router();
     router.get('/:id',validateToken, getRoomById);
     router.get('/staff/:id',validateToken, getRoomByIdStaff);
     router.get('/pagebystaff/:id/:rowinpage',validateToken, getRoomByIdFromToByStaff);
-    router.get('/page/:id/:rowinpage',validateToken, getRoomByIdFromTo);
+    router.get('/page/:id/:rowinpage/:search',validateToken, getRoomByIdFromTo);
     router.post('/search',validateToken, searchRoom);
     router.post('/searchbystaff',validateToken, searchRoomByStaff);
     router.post('/',validateTokenRoleAdmin, postRoom);

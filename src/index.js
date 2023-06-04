@@ -21,6 +21,8 @@ app.use(express.urlencoded({ extended: false }) );
 // Express Layouts  
 app.use('/admin', require('./Routes/login.admin.route'));
 app.use('/staff', require('./Routes/login.staff.route'));
+
+
 app.use(expressLayouts);
 //config viewengine
 configViewEngine(app);
@@ -67,9 +69,7 @@ app.use('/bookingstaff', require('./Routes/bookingstaff.route'));
 
 app.use('/gender', require('./Routes/gender.route'));
 
-app.use('/invoice', require('./Routes/invoice.route'));
 
-app.use('/invoicestaff', require('./Routes/invoicestaff.route'));
 
 app.use('/report', require('./Routes/report.route'));
 
@@ -83,7 +83,9 @@ app.use('/branch', require('./Routes/branch.route'));
 
 app.use('/staff', require('./Routes/staff.route'));
 //Staff
+app.use('/invoice', require('./Routes/invoice.route'));
 
+app.use('/invoicestaff', require('./Routes/invoicestaff.route'));
 
 app.listen(PORT , () => {
     console.log(`SERVER RUNNING http:localhost:${PORT}`);

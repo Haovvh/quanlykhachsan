@@ -20,11 +20,12 @@
                         <tr>
                             <th scope="col">STT</th>
                             <th scope="col">Tên</th>
-                            <th scope="col">Thanh toán</th>
+                            <th scope="col">Nhân viên</th>   
+                            <th scope="col">Hình Thức</th>
                             <th scope="col">Ngày Thuê</th>
                             <th scope="col">Ngày Trả</th>
-                            <th scope="col">Trạng Thái</th>
-                            <th scope="col">Total</th>
+                            <th scope="col">Thanh Toán</th>
+                            <th scope="col">Tổng Tiền</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -126,6 +127,9 @@
     var pages = 1;
 
     const user = JSON.parse(localStorage.getItem('user'));
+    if(user === null && localStorage.getItem('user') === null) {
+        window.location.assign("/staff/login")
+    }
     var token = "";
     if (user && user.accessToken) {
         
@@ -161,7 +165,7 @@
                         <table class="table table-striped table-bordered" id="roomdetail">
                             <thead>
                                 <tr>
-                                    <th scope="col">Tên Phòng</th>                                    
+                                    <th scope="col">Tên Phòng</th> 
                                     <th scope="col">Ngày Thuê/ Trả</th>                                 
                                     <th scope="col">Tổng ngày thuê (>8 giờ = 1 ngày)</th>
                                     <th scope="col">Đơn giá/ngày</th>
@@ -211,12 +215,12 @@
             if(current === 1) { 
                 bodyPages += `
                 <li class="page-item disabled">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">Đầu</button>                
                 </li>`;
             } else { 
                 bodyPages += `
                 <li class="page-item">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">First</button>
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+firstPage+`">Đầu</button>
                 </li>`
             } 
             var i = (Number(current) > 3 ? Number(current) - 2 : 1) 
@@ -251,12 +255,12 @@
             if(current === pages) { 
                 bodyPages += `
                 <li class="page-item disabled">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Last</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+lastPage+`">Cuối</button>                
                 </li>`
             } else { 
                 bodyPages += `
                 <li class="page-item">
-                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Last</button>                
+                    <button class="page-link pagesindex" id="pagesindex" data-id="`+pages+`">Cuối</button>                
                 </li>`
             }
             bodyPages += `
@@ -399,7 +403,7 @@
     
 
     const bodyCustomerDetail = () =>{
-        //Edit bi lõi
+
         this.bodyCustomer = "";
 
         for(let j = 0; j < this.customerDetails.length; j++){
@@ -439,18 +443,19 @@
                     <tr>
                         <td>`+ _stt +`</td>
                         <td>`+bookRow.fullname+`</td>
+                        <td>`+bookRow.username+`</td>
                         <td>`+bookRow.paymentname+`</td>
                         <td>`+bookRow.checkindate+`</td>
                         <td>`+bookRow.checkoutdate+`</td>`;
                         if(bookRow.statusBook === statusBook[0]) {
-                            html += `<td class="text-center"><label class=" btn-warning">${statusButton[0]}</label></td>`;
+                            html += `<td class="text-center"><label class="btn btn-warning btn-sm">Chưa</label></td>`;
                         } if(bookRow.statusBook === statusBook[1]) {
-                            html += `<td class="text-center" ><label class="  btn-success">${statusButton[1]}</label></td>`;
+                            html += `<td class="text-center" ><label class="btn  btn-success btn-sm">Rồi</label></td>`;
                         }
                         html += `  
                         <td>`+totalmoney+`</td>
                             <td>
-                                <button type="button" class="btn btn-warning btn-sm editbook" data-id="`+bookRow.id+`">
+                                <button type="button" class="btn btn-info btn-sm editbook" data-id="`+bookRow.id+`">
                                     View
                                 </button>                                    
                             </td>
@@ -479,7 +484,10 @@
                 dataType : "JSON",
                 success:function( data)
                 {
-                    
+                    if(data.success === false && data.statusCode === 400){
+                        alert("Token Đã hết hạn. Vui lòng đăng nhập")
+                        window.location.assign('staff/login')
+                    }
                     if(data.book.length > 0 && data.success) {
                         rowInPage = data.rowInPage;
                         pages = Math.ceil(data.book.length/rowInPage)
@@ -586,7 +594,7 @@
         $(document).on('click', '.search', function(){
             let search = document.getElementById('search').value;
             $.ajax({
-                url: `/book/search`,
+                url: `/book/searchstaff`,
                 method: viewMode[1],
                 headers: {
                     'Authorization':token
@@ -628,6 +636,7 @@
                 dataType : "JSON",
                 success:  function( data)
                 {
+                    console.log(data.book)
                     let _stt = id-1 + "" + 0;
                     _stt = parseInt(_stt)
 

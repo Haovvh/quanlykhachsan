@@ -110,7 +110,7 @@ const postBranch = async (request, response) =>{
 		await pool.query(query,[branchname]);
 		pool.end();
 		response.json({
-			message : 'Data Added',
+			message : 'Thêm mới thành công',
 			success: true
 		});
 		
@@ -137,7 +137,7 @@ const putBranchById = async(request, response) =>{
 		await pool.query(query,[branchname, id]);
 		await pool.end();
 		response.json({
-			message : 'Data Edited',
+			message : 'Sửa thành công',
 			success: true
 		});
 		
@@ -164,7 +164,7 @@ const deleteBranchById = async(request, response) =>{
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Deleted',
+			message : 'Xóa thành công',
 			success: true
 		});
 	} catch (error) {

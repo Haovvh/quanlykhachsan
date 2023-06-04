@@ -50,11 +50,21 @@ const postStaff = async (request, response) => {
 		INSERT INTO Staffs 
 		(username, password, branchtype) 
 		VALUES (?, ? , ?) `;
+		const queryUsername = `SELECT * FROM Staffs WHERE username = ? `;
 		const pool = mysql.createPool(configMysql);
+		const isStaff = await pool.query(queryUsername, [username]);
+		if(isStaff[0] && isStaff[0].length > 0) {
+			await pool.end();
+			response.json({
+				message : 'Tài khoản đã tồn tại',
+				success: false
+			});
+			return;
+		}
 		await pool.query(query,[username, pass, branchtype]);
 		await pool.end();
 		response.json({
-			message : 'Data Added',
+			message : 'Thêm mới thành công',
 			success: true
 		});
 
@@ -84,7 +94,7 @@ const putStaffById = async (request, response) => {
 		await pool.query(query,[ pass, id]);
 		await pool.end();
 		response.json({
-			message : 'Data Edited',
+			message : 'Sửa thành công',
 			success: true
 		});
 		
@@ -110,7 +120,7 @@ const deleteStaffById = async (request, response) => {
 		await pool.query(query,[isDelete.true, id]);
 		await pool.end();
 		response.json({
-			message : 'Data Deleted',
+			message : 'Xóa thành công',
 			success: true
 		});
 		

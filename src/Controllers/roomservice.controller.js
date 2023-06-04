@@ -20,7 +20,7 @@ const postRoomService = async (request, response) => {
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Added',
+			message : 'Thêm mới thành công',
 			success: true
 		});
 		
@@ -49,7 +49,7 @@ const putRoomServiceById = async (request, response) => {
 		
 		await pool.end();
 		response.json({
-			message : 'Data Edited',
+			message : 'Sửa thành công',
 			success: true
 		});
 		
@@ -73,7 +73,7 @@ const deleteRoomServiceById = async (request, response) => {
 		const pool = mysql.createPool(configMysql);
 		await pool.query(query);
 		response.json({
-			message : 'Data Deleted',
+			message : 'Xóa thành công',
 			success: true
 		});
 	} catch (error) {

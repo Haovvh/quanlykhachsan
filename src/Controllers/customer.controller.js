@@ -1,4 +1,4 @@
-const database = require('../config/mysql');
+
 const { isDelete, rowInPage } = require('../utils/const'); 
 const {formatDate} = require('../utils/date');
 const configMysql = require('../config/mysql.config')
@@ -10,14 +10,10 @@ const getCustomer = async (request, res) => {
     res.render('customer', {title : 'Customers', layout:'layout'});
 }
 
-
 const getCustomerById = async (request, response) => {
 
-    try {
-		
+    try {		
 		const {id} = request.params;
-		
-
 		var query = `SELECT main.id, main.fullname, main.citizenIdentityCard,
 		main.address, main.dateofbirth, main.gender, main.customertype, cus.customertypename
 		FROM Customers main LEFT JOIN customertypes cus on (main.customertype = cus.id)
@@ -57,10 +53,16 @@ const searchCustomer = async (request, response) => {
 		LEFT JOIN customertypes cus on (main.customertype = cus.id)
 		LEFT JOIN genders gen on (main.gender = gen.id)
 		WHERE  main.isDelete = ?
-		` + searchWith;
+		`;
 
 		const pool = mysql.createPool(configMysql);
-		const customer = await pool.query(query, [isDelete.false]);
+		var customer = await pool.query(query + searchWith, [isDelete.false]);
+		if(customer[0].length === 0){
+			if(search !== '') {
+				searchWith = ` AND main.citizenIdentityCard LIKE '%${search}%'  `;
+			}
+			customer = await pool.query(query + searchWith, [isDelete.false])
+		}
 		await pool.end();
 
 		response.json({
@@ -81,20 +83,27 @@ const searchCustomer = async (request, response) => {
 const postCustomer = async (request, response) => {
 
     try {
-
-        const {fullname,  address, citizenIdentityCard, customertype, dateofbirth, gender} = request.body;	
-        
-		const date = formatDate(dateofbirth);
-
+        const {fullname,  address, citizenIdentityCard, customertype, dateofbirth, gender} = request.body;	        
+		
+		const queryCustomer = `SELECT * FROM Customers WHERE citizenIdentityCard = ? AND isDelete = ? `;
 		var query = `
 		INSERT INTO Customers 
 		(fullname,  address, citizenIdentityCard, customertype, dateofbirth, gender) 
 		VALUES (?, ? , ? ,? , ? , ?) `;
 		const pool = mysql.createPool(configMysql);
+		const isCustomer = await pool.query(queryCustomer,[citizenIdentityCard, isDelete.false]);
+		if(isCustomer[0] && isCustomer[0].length > 0) {
+			await pool.end()
+			response.json({
+				message : 'Căn cước công dân đã tồn tại',
+				success: false
+			});
+			return;
+		}
 		await pool.query(query, [fullname,  address, citizenIdentityCard, customertype, dateofbirth, gender]);
 		await pool.end();
 		response.json({
-			message : 'Data Added',
+			message : 'Tạo mới thành công',
 			success: true
 		});
 
@@ -110,11 +119,9 @@ const postCustomer = async (request, response) => {
 const putCustomerById = async (request, response) => {
 
     try {
-
 		const {id, fullname, address, citizenIdentityCard, customertype, dateofbirth, gender} = request.body;	
 
-        const date = formatDate(dateofbirth);
-		var query = `
+		const query = `
 		UPDATE Customers 
 		SET fullname = ?, 
 		address = ?, 
@@ -124,11 +131,21 @@ const putCustomerById = async (request, response) => {
 		gender = ? 
 		WHERE id = ?
 		`;
+		const queryCustomer = `SELECT * FROM Customers WHERE citizenIdentityCard = ? `
 		const pool = mysql.createPool(configMysql);
+		const isCustomer = await pool.query(queryCustomer, [citizenIdentityCard])
+		if (isCustomer[0] && isCustomer[0].length > 0 && parseInt(isCustomer[0][0].id) !== parseInt(id)) {
+			await pool.end()
+			response.json({
+				message : 'Căn cước công dân đã tồn tại',
+				success: false
+			});
+			return;
+		}
 		await pool.query(query, [fullname, address, citizenIdentityCard, customertype, dateofbirth, gender, id]);
 		await pool.end();
 		response.json({
-			message : 'Data Edited', 
+			message : 'Sửa thành công', 
 			success: true
 		});
 		
@@ -148,14 +165,14 @@ const deleteCustomerById = async (request, response) => {
 
         const query = `
 		UPDATE Customers 
-		SET isDelete = ${isDelete.true}
-		WHERE id = "${id}"
+		SET isDelete = ?
+		WHERE id = ?
 		`;
 		const pool = mysql.createPool(configMysql);
-		await pool.query(query);
+		await pool.query(query, [isDelete.true, id]);
 		await pool.end();
 		response.json({
-			message : 'Data Deleted',
+			message : 'Xóa thành công',
 			success: true
 		});
 

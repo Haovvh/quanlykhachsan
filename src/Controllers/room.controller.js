@@ -12,8 +12,12 @@ const getRoom = async (request, response) => {
 const getRoomByIdFromTo = async (request, response) =>{
 
 	try {
-		const {id, rowinpage} = request.params;
-
+		const {id, rowinpage, search} = request.params;
+			
+			var querySearch = ``;
+			if(search !== "") {
+				querySearch = ` AND bra.branchname LIKE '%${search}%' `;
+			}
 			var queryRoom = `SELECT 
 			main.id, main.roomname, roo.price AS price, main.description,
 			roo.roomtypename, roo.price, main.status, 
@@ -23,7 +27,9 @@ const getRoomByIdFromTo = async (request, response) =>{
 			LEFT JOIN Roomtypes roo on (main.roomtype = roo.id)
 			LEFT JOIN Statuss sta on (main.status = sta.id)		
 			LEFT JOIN Branchs bra on (main.branchtype = bra.id)	
-			WHERE main.isDelete = ${isDelete.false}  
+			WHERE main.isDelete = ${isDelete.false}  `
+			+ querySearch +
+			`
 			ORDER BY main.branchtype ASC, main.id ASC
 			LIMIT ? , ?
 			`; 
@@ -95,7 +101,7 @@ const postRoom = async (request, response) => {
 		await pool.query(query, [roomname, roomtype, branchtype,  description]);
 		await pool.end();
 		response.json({
-			message : 'Data Added',
+			message : 'Thêm mới thành công',
 			success: true
 		});
 
@@ -122,7 +128,7 @@ const postRoomByStaff = async (request, response) => {
 		await pool.query(query, [roomname, roomtype, branchtype,  description]);
 		await pool.end();
 		response.json({
-			message : 'Data Added',
+			message : 'Thêm mới thành công',
 			success: true
 		});
 
@@ -152,7 +158,7 @@ const putRoomById = async (request, response) => {
 		await pool.query(query, [roomname, roomtype, branchtype,  description, id]);
 		await pool.end();
 		response.json({
-			message : 'Data Edited',
+			message : 'Sửa thành công',
 			success: true
 		});
 		
@@ -184,7 +190,7 @@ const putRoomByStaff = async (request, response) => {
 		await pool.query(query, [roomname, roomtype, branchtype,  description, id]);
 		await pool.end();
 		response.json({
-			message : 'Data Edited',
+			message : 'Sửa thành công',
 			success: true
 		});
 		
@@ -211,7 +217,7 @@ const deleteRoomById = async (request, response) => {
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Deleted',
+			message : 'Xóa thành công',
 			success: true
 		});
 		
@@ -242,7 +248,7 @@ const deleteRoomByStaff = async (request, response) => {
 		await pool.query(query,[isDelete.false, id, branchtype]);
 		await pool.end();
 		response.json({
-			message : 'Data Deleted',
+			message : 'Xóa thành công',
 			success: true
 		});
 		
@@ -358,20 +364,25 @@ const searchRoom = async (request, response) => {
 		const {search} = request.body;
 		var searchWith = '';
 		if(search !== '') {
-			searchWith = ` AND main.roomname LIKE '%${search}%'   `;
+			searchWith = ` AND bra.branchname LIKE '%${search}%'   `;
 		}
+		console.log(search)
+		
 		var query = `SELECT main.*, 
 		rot.price, rot.roomtypename, 
-		rot.maxcustomer, sta.statusname
+		rot.maxcustomer, sta.statusname,
+		bra.branchname
 		FROM Rooms main
 		LEFT JOIN RoomTypes rot on (rot.id = main.roomtype)
 		LEFT JOIN Statuss sta on (main.status = sta.id)
+		LEFT JOIN Branchs bra on (main.branchtype = bra.id)
 		WHERE  main.isDelete = ?
 		AND rot.isDelete = ? 
-		` + searchWith;
+		`;
 		
 		const pool = mysql.createPool(configMysql);
-		const room = await pool.query(query, [isDelete.false, isDelete.false]);
+		const room = await pool.query(query + searchWith, [isDelete.false, isDelete.false]);
+		
 		await pool.end();
 
 		response.json({

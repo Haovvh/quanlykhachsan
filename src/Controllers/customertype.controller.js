@@ -1,4 +1,4 @@
-const database = require('../config/mysql');
+
 const { isDelete, rowInPage } = require('../utils/const'); 
 const configMysql = require('../config/mysql.config')
 const mysql = require('mysql2/promise');
@@ -108,7 +108,7 @@ const postCustomerType = async (request, response) => {
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Added',
+			message : 'Thêm mới thành công',
 			success: true
 		});
 		
@@ -134,7 +134,7 @@ const putCustomerTypeById = async (request, response) => {
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Edited', 
+			message : 'Sửa thành công', 
 			success: true
 		});
 
@@ -161,7 +161,7 @@ const deleteCustomerTypeById = async (request, response) => {
 		await pool.query(query);
 		await pool.end();
 		response.json({
-			message : 'Data Deleted',
+			message : 'Xóa thành công',
 			success: true
 		});
 	} catch (error) {
