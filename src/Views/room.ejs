@@ -348,7 +348,6 @@
                 dataType:"JSON",
                 success:function(data)
                 {
-                    console.log(data)
                     if(data.success) {
                         $('#dynamicModalTitle').text('Sửa Phòng');
     
@@ -442,7 +441,7 @@
 
         $(document).on('click', '.pagesindex', function(){     
             const search = document.getElementById("search").value       
-            console.log(search)
+
             var id = $(this).data('id');
             id = parseInt(id);            
             $.ajax({

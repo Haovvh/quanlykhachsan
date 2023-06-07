@@ -403,7 +403,6 @@ const searchBookByStaff = async (request, response) =>{
 		if(search !== '') {
 			searchWith = `AND  cus.fullname LIKE '%${search}%'  `;
 		}
-		console.log(search)
 		const queryBook = `
 		SELECT main.id,  cus.fullname, 
 		roo.roomname , main.statusBook, pay.paymentname  , 
@@ -451,10 +450,10 @@ const postBook = async (request, response) =>{
 	try {		
 		const staffid = verifiedTokenByStaff(request).id
 		
-		const { roomid, paymentid, customerid, 
-			roomserviceid, quantityTemp, checkindate, checkoutdate, totalmoney} 
+		var { roomid, paymentid, customerid, 
+			roomserviceid, quantityTemp,  checkoutdate, totalmoney, checkindateText} 
 			= request.body;
-
+		
 		if(!(customerid && customerid.length >0)) {
 			response.json({
 				message: "Error",
@@ -462,15 +461,15 @@ const postBook = async (request, response) =>{
 			})
 			return;
 		}		
-		
 		const pool = mysql.createPool(configMysql)
 		
 		var bookidtemp = 0;		
+		const checkindate = new Date().toLocaleString();
 
 		const check = await pool.query(`
 		INSERT INTO Books (roomid, paymentid, checkoutdate, checkindate, totalmoney, staffid)	
 		VALUES (?, ?, ?, ?, ?, ?) `, 
-		[roomid, paymentid, checkoutdate, checkindate, totalmoney, staffid]);
+		[roomid, paymentid, checkoutdate, checkindateText,  totalmoney, staffid]);
 		
 		await pool.query(`UPDATE Rooms SET status = ? 
 		WHERE id = ? `,
@@ -539,9 +538,9 @@ const putBook = async (request, response) =>{
 
 	try {	
 		
+		const {bookid, paymentid, customerid, roomserviceid, quantityTemp, checkoutdate, totalmoney} = request.body;
 		
-		const {bookid, roomid, paymentid, customerid, roomserviceid, quantityTemp, checkoutdate, totalmoney} = request.body;
-		
+
 		if(!(customerid && customerid.length >0)) {
 			response.json({
 				message: "Error",
@@ -578,16 +577,12 @@ const putBook = async (request, response) =>{
 				`
 				await pool.query(deleteRoomService);
 			}	
-			const temp1 = await pool.query(`SELECT * FROM Books WHERE id = ?`, [bookid]);
 			
+			await pool.query(`UPDATE Books SET  paymentid = ? , checkoutdate = ?, totalmoney = ?
+			WHERE id = ?`,[  paymentid, checkoutdate, totalmoney, bookid]);
 
-			await pool.query(`UPDATE Books SET roomid = ?, paymentid = ? , checkoutdate = ?, totalmoney = ?
-			WHERE id = ?`,[roomid, paymentid, checkoutdate, totalmoney, bookid]);
-
-			const temp2 = await pool.query(`SELECT * FROM Books WHERE id = ?`, [bookid]);
-			
 			var valueBookdetail ="";	
-			//phải có khách hàng	
+			//phải có khách hàng		
 
 			if(customerid && customerid.length >0) {	
 				if(typeof(customerid) === 'object') {

@@ -12,7 +12,7 @@
                     <div class="col-2">
                         <label class="form-label"><h5>Trạng thái</h5></label>
                     </div>
-                    <div class="col-2">
+                    <div class="col-3">
                         <label class="form-label"><h5>Tổng tiền</h5></label>
                     </div>
                     <div class="col-2">
@@ -29,7 +29,7 @@
                     <div class="col-2">
                         <input type="text" class="form-control statusname"  id="statusname" name="statusname" readonly>
                     </div>
-                    <div class="col-2">
+                    <div class="col-3">
                         <input type="text" class="form-control totalmoney"  id="totalmoney" name="totalmoney" readonly>
                     </div>
                     <div class="col-2">
@@ -118,7 +118,8 @@
                             <thead>
                                 <tr>
                                     <th scope="col">Tên Phòng</th>                                    
-                                    <th scope="col">Ngày Thuê/ Trả</th>                                 
+                                    <th scope="col">Ngày Thuê</th>      
+                                    <th scope="col">Ngày Trả</th>                              
                                     <th scope="col">Số Ngày</th>
                                     <th scope="col">Đơn giá/ngày</th>
                                     <th scope="col">Đơn giá/giờ</th>
@@ -262,11 +263,9 @@
                     this.bodyRoom += `
                         <tr>
                             <td>${temproom.roomname}</td>
-                                        
-                            <td>${checkindate.toLocaleString()}     /     ${checkoutdate.toLocaleString()}</td>
-                            
-                            <td>${tempdays} Day ${tempHour} hours</td>
-                            
+                            <td>${checkindate.toLocaleString()}</td>
+                            <td>${checkoutdate.toLocaleString()}</td>
+                            <td>${tempdays} Ngày ${tempHour} Giờ</td>
                             <td>${roomprice}</td>
                             <td>${(temproom.price/10).toLocaleString(undefined)}</td>
                             <td>${(totalRoom).toLocaleString(undefined)}</td>                             
@@ -315,7 +314,6 @@
                 },
                 dataType : "JSON",
                 success:  function( data){
-                    console.log(data)
 
                     if(data.success) {                  
                         book = data.book;

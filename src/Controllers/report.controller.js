@@ -68,7 +68,6 @@ const searchReport = async (request, response) =>{
 const searchReportByStaff = async (request, response) =>{
 
 	try {
-		console.log("searchReportByStaff")
 		const branchtype = verifiedTokenByStaff(request).branchtype;
 
 		const {checkdatefrom, checkdateto} = request.params

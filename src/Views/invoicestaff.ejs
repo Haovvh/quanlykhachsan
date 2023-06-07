@@ -227,8 +227,8 @@
     const bodyRoomDetail = () =>{
                
         this.bodyRoom = "";
-        const checkindate = room[0].checkindate
-        const checkoutdate = room[0].checkoutdate
+        let checkindate = room[0].checkindate
+        let checkoutdate = room[0].checkoutdate
         const roominputid = room[0].roomid
 
         var hour = 0;
@@ -236,6 +236,8 @@
         let date1 = new Date(checkindate);
         let date2 = new Date(checkoutdate); 
 
+        checkindate = checkindate.toLocaleString()
+        checkoutdate = checkoutdate.toLocaleString()
         let diffInMs = date2.getTime() - date1.getTime();
 
         let diffInHours = diffInMs / (1000  * 60 * 60);
@@ -260,8 +262,8 @@
                         <tr>
                             <td>${temproom.roomname}</td>
                                         
-                            <td>${checkindate.toLocaleString()}</td>
-                            <td>${checkoutdate.toLocaleString()}</td>
+                            <td>${checkindate}</td>
+                            <td>${checkoutdate}</td>
                             <td>${tempdays} Ngày ${tempHour} Giờ</td>
                             
                             <td>${roomprice}</td>

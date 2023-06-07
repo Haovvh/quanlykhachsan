@@ -104,16 +104,18 @@ const getBookById = async (request, response) =>{
 		ORDER BY main.id ASC
 		`;
 		const pool = mysql.createPool(configMysql);
-		var book = await pool.query(queryBook, [id, isDelete.false, statusBook.CHUATHANHTOAN]);
-
+		var books = await pool.query(queryBook, [id, isDelete.false, statusBook.CHUATHANHTOAN]);
+		books = books[0];		
+		for( let i = 0; i <books.length; i++ ) {
+			books[i].checkindate = books[i].checkindate.toLocaleString();
+			books[i].checkoutdate = books[i].checkoutdate.toLocaleString();
+		}
 		const bookdetail = await pool.query(queryBookDetail);
 		const roomservicedetail = await pool.query(queryRoomServiceDetail);
 		await pool.end();
-		book = book[0];
-		
 		
 		response.json({
-			book: book, 
+			book: books, 
 			bookdetail: bookdetail[0],
 			roomservicedetail: roomservicedetail[0],
 			success: true
@@ -128,8 +130,6 @@ const getBookById = async (request, response) =>{
 		})
 	}
 }
-
-
 
 
 module.exports = {

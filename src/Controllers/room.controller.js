@@ -366,7 +366,6 @@ const searchRoom = async (request, response) => {
 		if(search !== '') {
 			searchWith = ` AND bra.branchname LIKE '%${search}%'   `;
 		}
-		console.log(search)
 		
 		var query = `SELECT main.*, 
 		rot.price, rot.roomtypename, 

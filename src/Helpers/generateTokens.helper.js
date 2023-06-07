@@ -8,7 +8,7 @@ const generateTokens =  async (id, username, password, branchtype = 0 ) => {
         const payload = { id, username, password, branchtype };
 
         jwt.sign( payload , process.env.KEY_JWTOKEN, { 
-            expiresIn: '24h'
+            expiresIn: '12h'
         }, ( err, token ) => {
 
             if( !err ){ 
