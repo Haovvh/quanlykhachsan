@@ -1,28 +1,28 @@
 drop database QLKhachSan;
 create database QLKhachSan;
 
-        CREATE TABLE QLKhachSan.Branchs (
+        CREATE TABLE Branchs (
         id			            BIGINT PRIMARY KEY AUTO_INCREMENT
-        ,branchname                   VARCHAR(50) NOT NULL
+        ,branchname             VARCHAR(50) NOT NULL
         ,isDelete				BOOL DEFAULT FALSE
         );
 
         CREATE TABLE QLKhachSan.admin (
 		id			            BIGINT PRIMARY KEY AUTO_INCREMENT
-		,username					VARCHAR(128)
+		,username				VARCHAR(128)
 		,password				VARCHAR(100) NOT NULL 
         ,status                 BIGINT 
         ,isDelete				BOOL DEFAULT FALSE 
         );	
 
 CREATE TABLE QLKhachSan.Staffs (
-		id			            BIGINT PRIMARY KEY AUTO_INCREMENT
-		,username					VARCHAR(128)
-		,password				VARCHAR(100) NOT NULL
-        ,branchtype               BIGINT DEFAULT 1
-        ,status                 BIGINT 
-        ,isDelete				BOOL DEFAULT FALSE 
-        );	
+	id              BIGINT PRIMARY KEY AUTO_INCREMENT
+	,username       VARCHAR(128)
+	,password       VARCHAR(100) NOT NULL
+    ,branchtype     BIGINT DEFAULT 1
+    ,status         BIGINT 
+    ,isDelete       BOOL DEFAULT FALSE 
+);	
 
         CREATE TABLE QLKhachSan.Customers (
 		id			            BIGINT PRIMARY KEY AUTO_INCREMENT		
@@ -41,7 +41,7 @@ CREATE TABLE QLKhachSan.Staffs (
         CREATE TABLE QLKhachSan.Rooms (
 		id			            BIGINT  AUTO_INCREMENT
         ,branchtype             BIGINT DEFAULT 1
-		,roomname					VARCHAR(11) NOT NULL
+		,roomname				VARCHAR(11) NOT NULL
         ,roomtype				BIGINT NOT NULL
         ,description 			VARCHAR(200)
         ,status                 VARCHAR(20) 	DEFAULT 'SANSANG'
@@ -51,7 +51,7 @@ CREATE TABLE QLKhachSan.Staffs (
         
         CREATE TABLE QLKhachSan.Roomtypes (
 		id			            BIGINT PRIMARY KEY AUTO_INCREMENT
-		,roomtypename					VARCHAR(50) NOT NULL
+		,roomtypename			VARCHAR(50) NOT NULL
         ,price 					DECIMAL DEFAULT 0
         ,maxcustomer            BIGINT DEFAULT 1
         ,isDelete				BOOL DEFAULT FALSE
@@ -69,7 +69,7 @@ CREATE TABLE QLKhachSan.Staffs (
         CREATE TABLE QLKhachSan.Books (
 		id			            BIGINT PRIMARY KEY AUTO_INCREMENT
         ,roomid				    BIGINT 
-        ,staffid				    BIGINT 
+        ,staffid				BIGINT 
         ,paymentid			    BIGINT 
         ,bookdate		    	DATETIME DEFAULT CURRENT_TIMESTAMP
         ,checkindate		    DATETIME DEFAULT NOW()
@@ -105,13 +105,13 @@ CREATE TABLE QLKhachSan.Staffs (
         );
         CREATE TABLE QLKhachSan.Genders (
 		id			            BIGINT PRIMARY KEY AUTO_INCREMENT
-        ,gendername                   VARCHAR(50) NOT NULL
+        ,gendername             VARCHAR(50) NOT NULL
         ,isDelete				BOOL DEFAULT FALSE
         ,UNIQUE(gendername)
         );
         CREATE TABLE QLKhachSan.CustomerTypes (
 		id			            BIGINT PRIMARY KEY AUTO_INCREMENT
-        ,customertypename                   VARCHAR(50) NOT NULL
+        ,customertypename       VARCHAR(50) NOT NULL
         ,isDelete				BOOL DEFAULT FALSE
         ,UNIQUE(customertypename)
         );

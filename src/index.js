@@ -41,6 +41,8 @@ app.use(session({
     }
 }));
 
+
+app.use('/mail', require('./Routes/sendmail.route'));
 //Routes
 
 app.use('/', require('./Routes/index.route'));
